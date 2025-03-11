@@ -17,6 +17,7 @@ get_weather_info() {
     # Verifica se a resposta é válida
     if [[ -z $result || $result =~ "Unknown" || $result =~ "html" || ! $result =~ [0-9]+°C ]]; then
         echo "wttr.in indisponível ou resposta inválida. Tentando API alternativa..." >&2
+        result1=""
 
         # Tenta obter o clima da API alternativa
         result=$(curl -s --max-time 10 "https://api.wsclima.com.br/v1/stations/143/detail" \
