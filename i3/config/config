@@ -73,8 +73,8 @@ exec --no-startup-id /usr/bin/xautolock -time 4 -corners +--- -cornersize 20 -co
 bindsym --whole-window $mod+button2 kill
 
 # Mouse horizontal scroll
-bindsym  --whole-window button6 exec ~/mydotfiles/logid/mousetab.sh down 
-bindsym  --whole-window button7 exec ~/mydotfiles/logid/mousetab.sh up
+bindsym  --whole-window button6 exec ~/mydotfiles/logid/mousetab1.sh down 
+bindsym  --whole-window button7 exec ~/mydotfiles/logid/mousetab1.sh up
 
 #-------
 #Shortcuts

@@ -88,9 +88,9 @@ while [ "$current" -le 100 ]; do
 		-h int:value:"$current" \
 		-h 'string:hlcolor:#ff4444' \
 		-h string:x-dunst-stack-tag:progress-lock \
-		--timeout=500 "Bloqueio de Tela ..." "$(date '+%H:%M:%S %d/%m/%Y')"
+		--timeout=1500 "Bloqueio de Tela ..." "$(date '+%H:%M:%S %d/%m/%Y')"
 	current=$((current + 1))
-	sleep 0.06
+	sleep 0.15
 	check_mouse_movement
 	if ! kill -0 $key_monitor_pid 2>/dev/null; then
 		kill "$key_monitor_pid"
