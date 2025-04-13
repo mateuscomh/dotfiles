@@ -279,7 +279,7 @@ bindsym $mod+Shift+q kill
 bindsym $mod+Return exec /usr/bin/alacritty
 bindsym $mod+shift+Return exec /usr/bin/urxvt
 bindsym $mod+q exec /usr/bin/xfce4-appfinder
-bindsym $mod+g exec /usr/bin/brave-browser "https://meutimao.com.br"
+bindsym $mod+g exec /usr/bin/brave-browser --password-store=basic "https://meutimao.com.br"
 bindsym $mod+shift+g exec /usr/bin/firefox
 bindsym $mod+e exec /usr/bin/nemo
 bindsym $mod+p exec /usr/bin/flameshot gui
