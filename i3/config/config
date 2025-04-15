@@ -5,6 +5,9 @@ set $mod Mod4
 # Mouse+$mod to drag floating windows 
 floating_modifier $mod
 
+# Enable mouse drag in title
+tiling_drag modifier titlebar
+
 # Set font style
 font pango:monospace 8
 
@@ -63,7 +66,6 @@ bindsym $mod+l exec $i3lockscreen
 set $i3lockscreen bash ~/dotfiles/i3/scripts/lockscreen.sh 
 
 # Set screen wallpaper
-#set $setScreenWallpaper /home/salaam/dotfiles/i3/wallpaper/horwallpaperL.jpg /home/salaam/dotfiles/i3/wallpaper/vertwallpaperR.jpg 
 set $setScreenWallpaper ~/dotfiles/i3/wallpaper/horgalaxyR.jpg /home/salaam/dotfiles/i3/wallpaper/horgalaxyL.jpg 
 
 # Lockscreen set

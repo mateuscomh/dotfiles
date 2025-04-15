@@ -34,18 +34,23 @@
 ## how often to sync history. note that this is only triggered when a command
 ## is ran, so sync intervals may well be longer
 ## set it to 0 to sync after every command
- sync_frequency = "6h"
+ sync_frequency = "3h"
 
 ## which search mode to use
 ## possible values: prefix, fulltext, fuzzy, skim
- search_mode = "fuzzy"
+ search_mode = "fulltext"
 
-## which filter mode to use
-## possible values: global, host, session, directory
+## which filter mode to use by default
+## possible values: "global", "host", "session", "directory", "workspace"
+## consider using search.filters to customize the enablement and order of filter modes
  filter_mode = "host"
 
 ## With workspace filtering enabled, Atuin will filter for commands executed
-## in any directory within a git repository tree (default: false)
+## in any directory within a git repository tree (default: false).
+##
+## To use workspace mode by default when available, set this to true and
+## set filter_mode to "workspace" or leave it unspecified and 
+## set search.filters to include "workspace" before other filter modes.
  workspaces = true
 
 ## which filter mode to use when atuin is invoked from a shell up-key binding
@@ -103,9 +108,6 @@
    "^innocuous-cmd .*--secret=.+",
  ]
 
-[dotfiles]
-  enabled = true
-
 ## prevent commands run with cwd matching any of these regexes from being written
 ## to history. Note that these regular expressions are unanchored, i.e. if they don't
 ## start with ^ or end with $, they'll match anywhere in CWD.
@@ -128,13 +130,20 @@
 ## Configure whether or not to show tabs for search and inspect
  show_tabs = true
 
+## Configure whether or not the tabs row may be auto-hidden, which includes the current Atuin
+## tab, such as Search or Inspector, and other tabs you may wish to see. This will
+## only be hidden if there are fewer than this count of lines available, and does not affect the use
+## of keyboard shortcuts to switch tab. 0 to never auto-hide, default is 8 (lines).
+## This is ignored except in `compact` mode.
+# auto_hide_height = 8
+
 ## Defaults to true. This matches history against a set of default regex, and will not save it if we get a match. Defaults include
 ## 1. AWS key id
 ## 2. Github pat (old and new)
 ## 3. Slack oauth tokens (bot, user)
 ## 4. Slack webhooks
 ## 5. Stripe live/test keys
-# secrets_filter = true
+ secrets_filter = true
 
 ## Defaults to true. If enabled, upon hitting enter Atuin will immediately execute the command. Press tab to return to the shell and edit.
 # This applies for new installs. Old installs will keep the old behaviour unless configured otherwise.
@@ -161,7 +170,7 @@ enter_accept = false
 
 ## Set this to true and Atuin will minimize motion in the UI - timers will not update live, etc.
 ## Alternatively, set env NO_MOTION=true
- prefers_reduced_motion = true
+ prefers_reduced_motion = false
 
 [stats]
 ## Set commands where we should consider the subcommand for statistics. Eg, kubectl get vs just kubectl
@@ -210,6 +219,10 @@ enter_accept = false
 [keys]
 # Defaults to true. If disabled, using the up/down key won't exit the TUI when scrolled past the first/last entry.
  scroll_exits = true
+ # Defaults to true. The left arrow key will exit the TUI when scrolling before the first character
+ exit_past_line_start = true
+# Defaults to true. The right arrow key performs the same functionality as Tab and copies the selected line to the command line to be modified.
+ accept_past_line_end = true
 
 [sync]
 # Enable sync v2 by default
@@ -222,7 +235,7 @@ records = true
 ## possible values: auto, static
 ## auto: length of the selected command.
 ## static: length of the longest command stored in the history.
-# strategy = "auto"
+ strategy = "auto"
 
 [daemon]
 ## Enables using the daemon to sync. Requires the daemon to be running in the background. Start it with `atuin daemon`
@@ -260,3 +273,13 @@ records = true
 ## Whether the theme manager should output normal or extra information to help fix themes.
 ## Boolean, true or false. If unset, left up to the theme manager.
 # debug = true
+
+[search]
+## The list of enabled filter modes, in order of priority.
+## The "workspace" mode is skipped when not in a workspace or workspaces = false.
+## Default filter mode can be overridden with the filter_mode setting.
+ filters = [ "global", "host", "session", "workspace", "directory" ]
+
+[dotfiles]
+  enabled = true
+
