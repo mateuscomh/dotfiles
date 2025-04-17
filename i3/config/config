@@ -29,7 +29,8 @@ exec --no-startup-id $monitorLayout
 exec --no-startup-id feh --bg-fill $setScreenWallpaper 
 
 # Desktop effects transparency
-exec --no-startup-id compton -f --backend glx --vsync opengl
+exec_always --no-startup-id pkill compton; sleep 0.5; compton -f --backend glx --vsync opengl
+#exec --no-startup-id compton -f --backend glx --vsync opengl
 
 # Screen brightness adjust
 #bindsym $mod+shift+p exec /scripts/i3scripts/brilho.sh "r"
@@ -256,8 +257,8 @@ bar {
 }
 
 # Dmenu options
-bindsym $mod+d exec rofi -theme Arc-Dark.rasi -modi combi -show combi -lines 5 -eh 2 -width 800 -padding 800 -opacity "85" -bw 0 -bc "$bg-color" -bg "$bg-color" -fg "$text-color" -hlbg "bg-color" -hlfg "#9575cd" -font "monospace 12"
-bindsym $mod+shift+d exec rofi -theme Arc-Dark.rasi -show drun -lines 10 -eh 2 -width 1000 -padding 800 -opacity "85" -bw 0 -bc "$bg-color" -bg "$bg-color" -fg "$text-color" -hlbg "bg-color" -hlfg "#9575cd" -font "monospace 12"
+bindsym $mod+d exec rofi -theme Arc-Dark.rasi -modi combi -show combi -lines 5 -eh 2 -width 800 -padding 800 --window-opacity "85" -bw 0 -bc "$bg-color" -bg "$bg-color" -fg "$text-color" -hlbg "bg-color" -hlfg "#9575cd" -font "monospace 12"
+bindsym $mod+shift+d exec rofi -theme Arc-Dark.rasi -show drun -lines 10 -eh 2 -width 1000 -padding 800 --window-opacity "85" -bw 0 -bc "$bg-color" -bg "$bg-color" -fg "$text-color" -hlbg "bg-color" -hlfg "#9575cd" -font "monospace 12"
 
 # Exit i3 (logs you out of your X session)
 bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
@@ -303,8 +304,8 @@ bindsym XF86MonBrightnessDown exec xbacklight -dec 20 # decrease screen brightne
 bindsym XF86AudioPlay exec  playerctl --player=spotify play-pause
 bindsym XF86AudioNext exec playerctl -a next
 bindsym XF86AudioPrev exec playerctl -a previous
-bindsym F86AudioLowerVolume exec amixer -q sset Master 10%-
-bindsym F86AudioRaiseVolume exec amixer -q sset Master 10%+
+bindsym XF86AudioLowerVolume exec amixer -q sset Master 10%-
+bindsym XF86AudioRaiseVolume exec amixer -q sset Master 10%+
 
 # Path to volume control, without trailing slash
 set $volumepath ~/i3-volume

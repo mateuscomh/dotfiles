@@ -1,34 +1,30 @@
 #!/bin/bash
 
-# Configurações iniciais
-########################
+########################################
+# Sessão automática do tmux
+########################################
+if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen|tmux ]] && [ -z "$TMUX" ]; then
+    exec tmux
+fi
 
-# TMUX 
- if command -v tmux &> /dev/null && [ -n "$PS1" ] && [[ ! "$TERM" =~ screen ]] && [[ ! "$TERM" =~ tmux ]] && [ -z "$TMUX" ]; then
-     exec tmux
- fi
+########################################
+# Teclado e idioma
+########################################
+xset r rate 325 15                        # Velocidade de repetição de teclas
+export LANG=C.UTF-8                       # Idioma padrão UTF-8
+setxkbmap -layout us -variant intl        # Teclado US internacional
 
+########################################
+# Opções do shell
+########################################
+shopt -s cmdhist histappend checkwinsize
 
-# Configuração do teclado e idioma
-########################
-
-# Seta repeticao de teclado
-xset r rate 325 15 #Define velocidade de repeticao dos caracteres
-export LANG=C.UTF-8 #Variavel LANG UTF8
-setxkbmap -layout us -variant intl #Layout teclado US-Internacional
-
-# Opções do shell (shopt)
-shopt -s cmdhist # Ativa o histórico de comandos mais recente para cada processo filho
-shopt -s histappend # Adiciona cada novo comando ao final do histórico
-shopt -s checkwinsize # Verifica o tamanho da janela do terminal periodicamente e ajusta a saída
-
-# Valida se é um shell interativo
+# Retorna se não for shell interativo
 [[ "$-" != *i* ]] && return
 
-# Configurações de aparência e prompt
-######################################
-
-# Opções do histórico
+########################################
+# Histórico
+########################################
 export HISTTIMEFORMAT="%d/%m/%y %T "
 export HISTCONTROL='ignoreboth:erasedups:ignorespace:ignoredups'
 export HISTIGNORE='ll:cd ..:cd -:ls:ls -lah:history:pwd:bg:fg:clear'
@@ -36,62 +32,60 @@ export PROMPT_COMMAND='history -a'
 export HISTSIZE=
 export HISTFILESIZE=
 
-# Detecta se suporta cores
-force_color_prompt=yes
-if [ -n "$force_color_prompt" ]; then
-    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
-        color_prompt=yes
-    else
-        color_prompt=
-    fi
+########################################
+# Suporte a cores no prompt
+########################################
+if [ -x /usr/bin/tput ] && tput setaf 1 &> /dev/null; then
+    color_prompt=yes
+else
+    color_prompt=
 fi
 
-# Função para extrair o nome do branch do Git
+########################################
+# Função para mostrar o branch Git
+########################################
 parse_git_branch() {
     local branch
-    if git rev-parse --is-inside-work-tree &>/dev/null && branch=$(git branch 2>/dev/null | sed -n '/\* /s///p'); then
-        if [ -n "$(git status --porcelain)" ]; then
-            echo -e "($branch*)"
-        else
-            echo -e "($branch)"
-        fi
+    if git rev-parse --is-inside-work-tree &> /dev/null; then
+        branch=$(git branch --show-current 2>/dev/null)
+        [ -n "$(git status --porcelain)" ] && echo "(${branch}*)" || echo "(${branch})"
     fi
 }
 
-# Configura o PS1 (prompt)
+########################################
+# Prompt personalizado
+########################################
 if [ "$color_prompt" = yes ]; then
     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u\[\033[00m\]:\[\033[01;34m\]\W\[\033[01;31m\]$(parse_git_branch)\[\033[00m\]\$ '
 else
     PS1='${debian_chroot:+($debian_chroot)}\u@\h:\W\$ '
 fi
 
-# Configura o título da janela
+# Título da janela no terminal
 case "$TERM" in
-  xterm*|rxvt*)
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u: \w\a\]$PS1"
-    printf "\033]0;%s\007" "$1"
-    ;;
-  *)
-    ;;
+    xterm*|rxvt*)
+        PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u: \w\a\]$PS1"
+        printf "\033]0;%s\007" "$1"
+        ;;
 esac
 
-# Cores e aliases do ls
+########################################
+# Cores e aliases
+########################################
 if [ -x /usr/bin/dircolors ]; then
-  test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-  LS_COLORS=$LS_COLORS:'ow=40;97' ; export LS_COLORS
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    LS_COLORS="${LS_COLORS}:ow=40;97" ; export LS_COLORS
 fi
 
-# Aliases 
-if [ -f ~/.bash_aliases ]; then
-  . ~/.bash_aliases
-fi
+# Aliases
+[ -f ~/.bash_aliases ] && source ~/.bash_aliases
 
-# Functions
-if [ -f "${HOME}/.bash_functions" ]; then
-	source "${HOME}/.bash_functions"
-fi
+# Funções personalizadas
+[ -f "${HOME}/.bash_functions" ] && source "${HOME}/.bash_functions"
 
-# Completar comandos no Bash
+########################################
+# Autocompletar comandos
+########################################
 if ! shopt -oq posix; then
     if [ -f /usr/share/bash-completion/bash_completion ]; then
         . /usr/share/bash-completion/bash_completion
@@ -100,19 +94,19 @@ if ! shopt -oq posix; then
     fi
 fi
 
-# Comandos adicionais
-################################
+########################################
+# Extras
+########################################
 
-# Header bash debfetch
-/gitclones/debfetch/debfetch -p 
+# Banner customizado com o Debfetch
+/gitclones/debfetch/debfetch -p
 
-# Configuração do FZF
+# FZF
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
 
-# Adiciona diretório local ao PATH
-PATH="$HOME/.local/bin:$PATH"
+# PATH local
+export PATH="$HOME/.local/bin:$PATH"
 
-# Inicializa Atuin (se disponível)
-[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
+# Atuin (com suporte ao preexec)
+[ -f ~/.bash-preexec.sh ] && source ~/.bash-preexec.sh
 eval "$(atuin init bash --disable-up-arrow)"
-
