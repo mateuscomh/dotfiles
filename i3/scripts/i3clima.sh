@@ -1,47 +1,76 @@
 #!/usr/bin/env bash
 
+# Configurações
+CACHE_FILE="/tmp/weather_cache.txt"
+CACHE_TIMEOUT=60  # Tempo de cache em segundos
+#WEATHER_FORMAT="%m %c+%t"
+
+# Função para obter informações do clima
 get_weather_info() {
     local result
-    result=$(curl -s wttr.in\?format=1 | sed 's/ //g')
-    if [[ $result =~ [Uu]nknown || ! $result =~ [0-9]+.*C$ ]]; then
-        result=$(curl -s -X GET "https://api.wsclima.com.br/v1/stations/143/detail" \
+    local result1
+
+    # Obtém o clima do wttr.in com timeout de 10 segundos
+    result=$(curl -s --max-time 10 "wttr.in?format=1" | sed 's/ //g') && \
+    result1=$(curl -s --max-time 10 "wttr.in/Juiz+de+Fora?format=%m")
+
+    # Verifica se a resposta é válida
+    if [[ -z $result || $result =~ "Unknown" || $result =~ "html" || ! $result =~ [0-9]+°C ]]; then
+        echo "wttr.in indisponível ou resposta inválida. Tentando API alternativa..." >&2
+        result1=""
+
+        # Tenta obter o clima da API alternativa
+        result=$(curl -s --max-time 10 "https://api.wsclima.com.br/v1/stations/143/detail" \
             -H "Accept: application/json" \
-            -H "Accept-Language: pt-BR,pt;q=0.7" \
-            -H "Access-Control-Allow-Origin: *" \
-            -H "Connection: keep-alive" \
-            -H "Content-Type: application/json" \
-            -H "DNT: 1" \
-            -H "Origin: https://www.wsclima.com.br" \
-            -H "Referer: https://www.wsclima.com.br/" \
-            -H "Sec-Fetch-Dest: empty" \
-            -H "Sec-Fetch-Mode: cors" \
-            -H "Sec-Fetch-Site: same-site" \
-            -H "Sec-GPC: 1" \
-            -H "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36" \
-            -H 'sec-ch-ua: "Brave";v="129", "Not=A?Brand";v="8", "Chromium";v="129"' \
-            -H "sec-ch-ua-mobile: ?0" \
-            -H "sec-ch-ua-platform: 'Linux'" | grep -oP '"temp":"\K[0-9]+\.[0-9]+' | head -n 1)
+            -H "Content-Type: application/json" | \
+            grep -oP '"temp":"\K[0-9]+\.[0-9]+' | head -n 1)
+
+        # Adiciona o símbolo de grau Celsius à temperatura
+        if [[ -n $result ]]; then
+            result="${result1}${result}°C"
+        else
+            result="N/A"
+        fi
     fi
-    echo "$result"
+
+    echo "$result1$result"
 }
 
+# Função para obter o dia da semana
 get_day_of_week() {
-    local day
-    day=$(date +%a)
-    echo "$day"
+    LC_TIME=pt_BR.UTF-8 date +%a
 }
 
-# Main function
+# Função principal
 main() {
-    FILE="${HOME}/scripts/Output/i3clima"
-
-    # Fetch weather information and day of the week
+    local output_file="${HOME}/scripts/Output/i3clima"
     local weather_info
-    weather_info=$(get_weather_info)
     local day_of_week
+
+    # Verifica se o cache é válido
+    if [[ -f $CACHE_FILE ]]; then
+        local cache_age=$(($(date +%s) - $(stat -c %Y "$CACHE_FILE")))
+        if [[ $cache_age -lt $CACHE_TIMEOUT ]]; then
+            weather_info=$(cat "$CACHE_FILE")
+        else
+            weather_info=$(get_weather_info)
+            [[ $weather_info != "N/A" ]] && echo "$weather_info" > "$CACHE_FILE"
+        fi
+    else
+        weather_info=$(get_weather_info)
+        [[ $weather_info != "N/A" ]] && echo "$weather_info" > "$CACHE_FILE"
+    fi
+
+    # Se não conseguiu obter uma resposta válida, usa o cache anterior
+    [[ -z $weather_info || $weather_info == "N/A" ]] && weather_info=$(cat "$CACHE_FILE" 2>/dev/null || echo "N/A")
+
+    # Obtém o dia da semana
     day_of_week=$(get_day_of_week)
 
-    echo "$day_of_week.$weather_info" > "$FILE"
+    # Salva o resultado no arquivo de saída
+    echo "$weather_info.$day_of_week" > "$output_file"
 }
+
+# Executa o script
 main
 
