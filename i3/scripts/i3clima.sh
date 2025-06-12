@@ -20,7 +20,8 @@ get_weather_info() {
         result1=""
 
         # Tenta obter o clima da API alternativa
-        result=$(curl -s --max-time 10 "https://api.wsclima.com.br/v1/stations/143/detail" \
+        sleep 3
+        result=$(curl -s --max-time 10 "https://api.wsclima.com.br/v1/stations/571/detail" \
             -H "Accept: application/json" \
             -H "Content-Type: application/json" | \
             grep -oP '"temp":"\K[0-9]+\.[0-9]+' | head -n 1)
@@ -29,7 +30,7 @@ get_weather_info() {
         if [[ -n $result ]]; then
             result="${result1}${result}°C"
         else
-            result="N/A"
+            result=""
         fi
     fi
 

@@ -187,6 +187,8 @@ enter_accept = false
    "atuin",
    "systemctl",
    "tmux",
+   "curl",
+   "cat",
    "bash"
 #   "nmcli",
 #   "npm",

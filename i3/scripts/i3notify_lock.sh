@@ -143,6 +143,7 @@ check_mouse_movement
 kill $key_monitor_pid 2>/dev/null
 scrot $TEMP_BG
 convert $TEMP_BG -filter Gaussian -blur 0x55 $TEMP_BG
+sleep 0.3
 
 # Bloqueia a tela com i3lock-color
 i3lock -i $TEMP_BG \
@@ -156,4 +157,5 @@ i3lock -i $TEMP_BG \
 	--verif-text="and..."
 
 # Restaura o brilho original
+sleep 0.2
 restore_brightness
