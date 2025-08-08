@@ -1,161 +1,123 @@
 #!/usr/bin/env bash
 
 ###############################
-#  Script para i3-lock com notificação com detecção atividade mouse/teclado
-#
-# Descrição:
-# - Exibe notificação com barra de progresso antes de bloquear a tela.
-# - Cancela o bloqueio se houver movimento do mouse ou pressionamento de teclas.
+#  Script para i3-lock com notificação e fade-out
 #
 # Requisitos:
-# - xrandr, xdotool, dunst, i3lock, scrot, convert, awk, xinput, grep.
-# Version: 3.3.2
+# - xrandr, xdotool, dunst, i3lock, scrot, convert (ImageMagick), xinput
+# Version: 4.5.1
 ###############################
+
+# Sair imediatamente se um comando falhar
 set -e
 
+# Não executar se o i3lock já estiver rodando
 if pgrep -x "i3lock" >/dev/null; then
 	exit 0
 fi
 
-start_brightness=$(xrandr --verbose | grep -i brightness | awk '{print $2}' | head -n 1)
-end_brightness=0.1
-steps=60
+# --- Configurações ---
+FADE_SECONDS=15   # Duração do efeito de fade em segundos
+BLUR_LEVEL="0x55" # Nível de blur para o ImageMagick
 TEMP_BG="/tmp/lockscreen.png"
-initial_pos=$(xdotool getmouselocation --shell | grep -E 'X|Y' | cut -d '=' -f2)
 
-# Obter a lista de saídas conectadas e ativas
-get_active_outputs() {
-	xrandr --query | awk '/ connected / && /[0-9]+mm x [0-9]+mm$/ { 
-      print $1 
-  }'
-}
+# --- Funções ---
 
-mapfile -t outputs < <(get_active_outputs)
-
-# Função: Restaurar brilho original e sair
-restore_brightness() {
-	for output in "${outputs[@]}"; do
-		# Obtém o brilho atual do monitor
-		current_brightness=$(xrandr --verbose | grep -A 10 "^$output" | grep "Brightness" | awk '{print $2}')
-
-		# Apenas altera o brilho se for diferente do valor inicial
-		if [[ "$current_brightness" != "$start_brightness" ]]; then
-			xrandr --output "$output" --brightness "$start_brightness"
-		fi
-	done
-	cleanup
-	exit 0
-}
-
+# Restaura o brilho original e limpa os processos/arquivos
 cleanup() {
-	if [ -n "$TEMP_BG" ] && [ -f "$TEMP_BG" ]; then
-		rm -f "$TEMP_BG"
+	if [[ -n "$XRANDR_RESTORE_CMD" ]]; then
+		eval "$XRANDR_RESTORE_CMD"
 	fi
 	pkill -P $$
+	rm -f "$TEMP_BG"
 }
 
-# Função: Detectar movimento do mouse
-check_mouse_movement() {
-	current_pos=$(xdotool getmouselocation --shell | grep -E 'X|Y' | cut -d '=' -f2)
-	if [[ "$current_pos" != "$initial_pos" ]]; then
-		restore_brightness
-	fi
+# Centraliza o comando i3lock
+execute_lock() {
+	i3lock -i "$TEMP_BG" \
+		--clock \
+		--indicator \
+		--line-uses-ring \
+		--time-color=#A659DE \
+		--date-color=#B077D9 \
+		--ring-color=#00000000 \
+		--keyhl-color=#F299E1 \
+		--verif-text="and.." \
+		--wrong-text="" \
+		--inside-color=00000000
 }
 
-# Função: Obter interrupcao por teclado
-check_key_press() {
+start_keyboard_listener() {
 	local device_id
 	device_id=$(xinput list |
 		awk -F 'id=' '/liliums Lily58/ && !/Consumer Control|Mouse|System Control/ {print $2}' |
 		awk '{print $1}')
-	if [[ -z "$device_id" ]]; then
-		return
-	fi
-	while :; do
-		xinput test "$device_id" | grep -q "key press" && restore_brightness
-	done
+	(xinput test "$device_id" | grep -q "key press") &
 }
 
-check_key_press &
+trap cleanup EXIT SIGINT SIGTERM
+
+# Verifica se o bloqueio deve ser instantâneo
+if [[ "$1" == "now" ]]; then
+	scrot -o "$TEMP_BG"
+	convert "$TEMP_BG" -filter Gaussian -blur "$BLUR_LEVEL" "$TEMP_BG"
+	execute_lock
+	exit 0
+fi
+
+# 1. Obter brilho inicial e saídas de vídeo ativas
+start_brightness=$(xrandr --verbose | grep -i brightness | awk '{print $2}' | head -n 1)
+mapfile -t outputs < <(xrandr --query | awk '/ connected / && /[0-9]+x[0-9]+\+[0-9]+\+[0-9]+/{print $1}')
+
+# Monta o comando para restaurar o brilho, para ser usado depois de forma eficiente
+XRANDR_RESTORE_CMD="xrandr"
+for output in "${outputs[@]}"; do
+	XRANDR_RESTORE_CMD+=" --output $output --brightness $start_brightness"
+done
+
+scrot -o "$TEMP_BG"
+
+# 3. Iniciar os processos em segundo plano
+convert "$TEMP_BG" -filter Gaussian -blur "$BLUR_LEVEL" "$TEMP_BG" &
+blur_pid=$!
+
+start_keyboard_listener
 key_monitor_pid=$!
 
-trap restore_brightness EXIT SIGINT SIGTERM SIGHUP SIGABRT SIGUSR1
-
-# Notifica bloqueio de tela
-current=0
-while [ "$current" -le 100 ]; do
-	dunstify --icon preferences-desktop-screensaver \
-		-h int:value:"$current" \
-		-h 'string:hlcolor:#ff4444' \
-		-h string:x-dunst-stack-tag:progress-lock \
-		--timeout=1500 "Bloqueio de Tela ..." "$(date '+%H:%M:%S %d/%m/%Y')"
-	current=$((current + 1))
-	sleep 0.15
-	check_mouse_movement
-	if ! kill -0 $key_monitor_pid 2>/dev/null; then
-		kill "$key_monitor_pid"
-	fi
-done
-
-brightness_step=$(echo "($start_brightness - $end_brightness) / $steps" | bc -l)
+# 4. Loop principal para escurecer e notificar, enquanto detecta atividade
+initial_pos=$(xdotool getmouselocation --shell)
+steps=$((FADE_SECONDS * 20)) # 20 passos por segundo para uma animação suave
+brightness_step=$(echo "($start_brightness / $steps)" | bc -l)
 current_brightness=$start_brightness
 
-calculate_progress() {
-    echo "($(echo "scale=2; ($current_brightness - $end_brightness) / ($start_brightness - $end_brightness) * 100" | bc -l)/1)" | bc
-}
+for ((i = 0; i < steps; i++)); do
+	# Detectar movimento do mouse
+	if [[ "$(xdotool getmouselocation --shell)" != "$initial_pos" ]]; then
+		dunstify -r 1001 "Bloqueio cancelado por movimento."
+		exit 0
+	fi
+	# Detectar tecla pressionada
+	if [[ -n "$key_monitor_pid" ]] && ! kill -0 "$key_monitor_pid" 2>/dev/null; then
+		dunstify -r 50 "Bloqueio cancelado por teclado."
+		exit 0
+	fi
 
-# Aplica o brilho inicial imediatamente
-xrandr_cmd=""
-for output in "${outputs[@]}"; do
-    xrandr_cmd+=" --output $output --brightness $current_brightness"
-done
-eval xrandr "$xrandr_cmd"
+	progress=$(((i + 1) * 100 / steps))
+	dunstify --icon=preferences-desktop-screensaver \
+		-h int:value:"$progress" \
+		-h string:hlcolor:#8844ff \
+		-h string:x-dunst-stack-tag:lock-progress \
+		-r 1001 "Bloqueando em breve..." "$(date '+%T')"
 
-# Loop para diminuir o brilho gradualmente
-while (($(echo "$current_brightness > $end_brightness" | bc -l))); do
-#    # Ajusta o brilho para todos os monitores em um único comando
-    xrandr_cmd=""
-    for output in "${outputs[@]}"; do
-        xrandr_cmd+=" --output $output --brightness $current_brightness"
-    done
-    eval xrandr "$xrandr_cmd"
-    current=$(calculate_progress)
-
-    dunstify --icon preferences-desktop-screensaver \
-        -h int:value:"$current" \
-        -h 'string:hlcolor:#ff4444' \
-        -h string:x-dunst-stack-tag:progress-lock \
-        -r 1000 \
-        -t 900 \
-        -u low \
-        "Bloqueando..." "$(date '+%H:%M:%S %d/%m/%Y')"
-
-    current_brightness=$(echo "$current_brightness - $brightness_step" | bc -l)
-    sleep 0.2
-    check_mouse_movement
-    if ! kill -0 $key_monitor_pid 2>/dev/null; then
-        kill "$key_monitor_pid"
-    fi
+	current_brightness=$(echo "$current_brightness - $brightness_step" | bc -l)
+	xrandr_cmd="xrandr"
+	for output in "${outputs[@]}"; do
+		xrandr_cmd+=" --output $output --brightness $current_brightness"
+	done
+	eval "$xrandr_cmd"
+	sleep 0.05
 done
 
-sleep 1.0
-check_mouse_movement
-kill $key_monitor_pid 2>/dev/null
-scrot $TEMP_BG
-convert $TEMP_BG -filter Gaussian -blur 0x55 $TEMP_BG
-sleep 0.3
+wait "$blur_pid"
 
-# Bloqueia a tela com i3lock-color
-i3lock -i $TEMP_BG \
-	--clock \
-	--indicator \
-	--line-uses-ring \
-	--time-color=#A659DE \
-	--date-color=#B077D9 \
-	--ring-color=#000000 \
-	--ring-width=2 \
-	--verif-text="and..."
-
-# Restaura o brilho original
-sleep 0.2
-restore_brightness
+execute_lock

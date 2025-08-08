@@ -21,10 +21,8 @@ get_weather_info() {
 
         # Tenta obter o clima da API alternativa
         sleep 3
-        result=$(curl -s --max-time 10 "https://api.wsclima.com.br/v1/stations/571/detail" \
-            -H "Accept: application/json" \
-            -H "Content-Type: application/json" | \
-            grep -oP '"temp":"\K[0-9]+\.[0-9]+' | head -n 1)
+        result=$(curl -s "https://api.open-meteo.com/v1/forecast?latitude=-21.7642&longitude=-43.3503&current=temperature_2m&timezone=America%2FSao_Paulo" \
+            | jq -r '.current.temperature_2m')
 
         # Adiciona o símbolo de grau Celsius à temperatura
         if [[ -n $result ]]; then

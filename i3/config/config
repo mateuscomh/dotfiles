@@ -64,7 +64,7 @@ workspace "1:Terminals" output DP-2
 bindsym $mod+l exec $i3lockscreen 
 
 # Set i3lockscreen
-set $i3lockscreen bash ~/dotfiles/i3/scripts/lockscreen.sh 
+set $i3lockscreen bash ~/scripts/i3notify_lock.sh now
 
 # Set screen wallpaper
 set $setScreenWallpaper ~/dotfiles/i3/wallpaper/horgalaxyR.jpg /home/salaam/dotfiles/i3/wallpaper/horgalaxyL.jpg 
