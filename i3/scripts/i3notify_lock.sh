@@ -17,7 +17,7 @@ if pgrep -x "i3lock" >/dev/null; then
 fi
 
 # --- Configurações ---
-FADE_SECONDS=15   # Duração do efeito de fade em segundos
+FADE_SECONDS=20   # Duração do efeito de fade em segundos
 BLUR_LEVEL="0x55" # Nível de blur para o ImageMagick
 TEMP_BG="/tmp/lockscreen.png"
 
@@ -93,12 +93,12 @@ current_brightness=$start_brightness
 for ((i = 0; i < steps; i++)); do
 	# Detectar movimento do mouse
 	if [[ "$(xdotool getmouselocation --shell)" != "$initial_pos" ]]; then
-		dunstify -r 1001 "Bloqueio cancelado por movimento."
+		dunstify -r 100 "Bloqueio cancelado por movimento."
 		exit 0
 	fi
 	# Detectar tecla pressionada
 	if [[ -n "$key_monitor_pid" ]] && ! kill -0 "$key_monitor_pid" 2>/dev/null; then
-		dunstify -r 50 "Bloqueio cancelado por teclado."
+		dunstify -r 100 "Bloqueio cancelado por teclado."
 		exit 0
 	fi
 
@@ -107,7 +107,7 @@ for ((i = 0; i < steps; i++)); do
 		-h int:value:"$progress" \
 		-h string:hlcolor:#8844ff \
 		-h string:x-dunst-stack-tag:lock-progress \
-		-r 1001 "Bloqueando em breve..." "$(date '+%T')"
+		-r 500 "Bloqueando em breve..." "$(date '+%T')"
 
 	current_brightness=$(echo "$current_brightness - $brightness_step" | bc -l)
 	xrandr_cmd="xrandr"
