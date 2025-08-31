@@ -5,7 +5,7 @@
     gesture2-params, sidetone, equalizer]
   _battery: 4096
   _modelId: B01940690000
-  _sensitive: {change-host: true, gesture2-divert: true}
+  _sensitive: {change-host: true, gesture2-divert: true, hires-smooth-resolution: false, smart-shift: false}
   _serial: 773EC346
   _unitId: 93DB8691
   _wpid: '4069'
@@ -16,10 +16,10 @@
   gesture2-gestures: {45: true, 46: true}
   hires-scroll-mode: false
   hires-smooth-invert: false
-  hires-smooth-resolution: true
+  hires-smooth-resolution: false
   reprogrammable-keys: {80: 80, 81: 81, 82: 82, 83: 83, 86: 86, 195: 195, 196: 196}
   scroll-ratchet: 2
-  smart-shift: 11
+  smart-shift: 16
 - _NAME: Wireless Rechargeable Touchpad T650
   _absent: [lowres-scroll-mode, hires-smooth-invert, hires-smooth-resolution, hires-scroll-mode, scroll-ratchet, smart-shift, thumb-scroll-invert, thumb-scroll-mode,
     onboard_profiles, report_rate, pointer_speed, dpi, speed-change, backlight, backlight-timed, fn-swap, reprogrammable-keys, persistent-remappable-keys,
