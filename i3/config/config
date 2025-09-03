@@ -63,7 +63,7 @@ workspace "1:Terminals" output DP-2
 # Define a variável para o script de bloqueio
 set $i3lockscreen $HOME/scripts/i3notify_lock.sh 
 
-# Inicia o xautolock com LOGGING para debug
+# Inicia o xautolock 
 exec --no-startup-id xautolock \
     -time 4 \
     -corners +--- \
