@@ -1,7 +1,9 @@
 "--------Instalador de plugins----------
 call plug#begin('~/.vim/plugged')
 " Plug 'johngrib/vim-game-snake'
+"Plug 'catppuccin/vim', { 'as': 'catppuccin' }
  Plug 'mboughaba/i3config.vim'
+ Plug 'ap/vim-css-color'
  Plug 'morhetz/gruvbox'
  Plug 'vim-airline/vim-airline'
  Plug 'scrooloose/Syntastic'
@@ -14,6 +16,7 @@ call plug#begin('~/.vim/plugged')
  Plug 'vim-scripts/loremipsum'
  Plug 'ekalinin/dockerfile.vim'
  Plug 'mg979/vim-visual-multi'
+
 call plug#end()
 
 "--------Tabulacao----------
@@ -24,7 +27,21 @@ set softtabstop=2
 set autoindent
 set smartindent
 
-"------------Tema do vim------------
+" ------- Configuração do vim-css-color -------
+" Habilitar nomes de cores CSS (ex.: red, blue, green)
+let g:cssColorNames = 1
+
+" Ativar suporte a 24-bit color no Vim (necessário para cores reais)
+"if has("termguicolors")
+  set termguicolors?
+"endif
+
+" Ativar destaque de cores em QUALQUER tipo de arquivo
+syntax on
+autocmd BufRead,BufNewFile * silent! :ColorHighlight
+
+
+"---------Tema do vim----------
 "colorscheme gruvbox
 set background=dark
 
@@ -40,9 +57,11 @@ let g:syntastic_enable_perl_checker = 1
 let g:syntastic_perl_checkers       = ['perl','podchecker']
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
-set statusline+=%#warningmsg#
-set statusline+=%{SyntasticStatuslineFlag()}
-set statusline+=%*
+"if exists('*SyntasticStatuslineFlag')
+"  set statusline+=%#warningmsg#
+"  set statusline+=%{SyntasticStatuslineFlag()}
+"  set statusline+=%*
+"endif
 
 "--------Numero de linhas----------
 set number
@@ -54,6 +73,9 @@ autocmd InsertEnter * set norelativenumber
 
 " ------Insert Mode Relative-------
 autocmd InsertLeave * set relativenumber
+
+"------Clipboard --------------
+set clipboard=unnamedplus
 
 "------Insert Mode Cursor--------
 let &t_SI="\e[6 q"
