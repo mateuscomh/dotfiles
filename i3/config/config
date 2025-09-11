@@ -63,7 +63,7 @@ workspace "1:Terminals" output DP-2
 # Define a variável para o script de bloqueio
 set $i3lockscreen $HOME/scripts/i3notify_lock.sh 
 
-# Inicia o xautolock 
+# Inicia o xautolock
 exec --no-startup-id xautolock \
     -time 4 \
     -corners +--- \
@@ -205,6 +205,7 @@ for_window [class="Blueman-manager"] floating enable resize set 640 450
 for_window [class="xfce4-terminal"] floating enable resize set 840 550
 for_window [class="Xmessage"] floating enable resize set 200 90 title_align center
 for_window [class="Yad"] floating enable resize set 690 500 title_align center
+for_window [class="Notepadqq"] floating enable resize set 690 750 title_align center
 
 # Forcing floatmode on workspace
 for_window [class="SpeedCrunch"] floating enable
@@ -282,6 +283,7 @@ bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcu
 bindsym $mod+Shift+r restart
 
 # Reload Display screen
+exec --no-startup-id xrandr --dpi 96
 bindsym $mod+k exec ~/.screenlayout/dell.sh 
 bindsym $mod+j exec ~/.screenlayout/dell_vert.sh 
 bindsym $mod+Shift+k exec ~/.screenlayout/2dell_vert.sh && feh --bg-fill $setScreenWallpaper

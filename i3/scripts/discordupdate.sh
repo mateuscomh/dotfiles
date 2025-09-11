@@ -16,4 +16,4 @@ sudo dpkg -i discord.deb || sudo apt -f install -y
 
 echo "✅ Discord atualizado."
 
-discord
+discord &

@@ -2,7 +2,7 @@
 
 # Configurações
 CACHE_FILE="/tmp/weather_cache.txt"
-CACHE_TIMEOUT=60  # Tempo de cache em segundos
+CACHE_TIMEOUT=20  # Tempo de cache em segundos
 #WEATHER_FORMAT="%m %c+%t"
 
 # Função para obter informações do clima
