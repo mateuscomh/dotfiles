@@ -284,6 +284,9 @@ bindsym $mod+Shift+r restart
 
 # Reload Display screen
 exec --no-startup-id xrandr --dpi 96
+exec --no-startup-id export XCURSOR_SIZE=16
+exec --no-startup-id export XCURSOR_THEME=Breeze-Dark
+
 bindsym $mod+k exec ~/.screenlayout/dell.sh 
 bindsym $mod+j exec ~/.screenlayout/dell_vert.sh 
 bindsym $mod+Shift+k exec ~/.screenlayout/2dell_vert.sh && feh --bg-fill $setScreenWallpaper

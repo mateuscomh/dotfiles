@@ -4,6 +4,7 @@
 
 # --- Configurações Gerais ---
 env:
+  WINIT_X11_SCALE_FACTOR: "1.0"
   TERM: xterm-256color
 
 # Define a largura de um caractere de tabulação.
@@ -112,9 +113,10 @@ mouse:
   # Esconde o ponteiro do mouse enquanto digita.
   hide_when_typing: true
 
+
 # --- Atalhos de Teclado ---
 key_bindings:
-  - { key: V,        mods: Control|Shift, action: Paste }
+- { key: V,        mods: Control|Shift, action: Paste }
   - { key: C,        mods: Control|Shift, action: Copy }
   - { key: Equals,   mods: Control,       action: IncreaseFontSize }
   - { key: Plus,     mods: Control,       action: IncreaseFontSize }
