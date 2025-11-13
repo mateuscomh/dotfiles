@@ -33,7 +33,7 @@ let g:cssColorNames = 1
 
 " Ativar suporte a 24-bit color no Vim (necessário para cores reais)
 "if has("termguicolors")
-  set termguicolors?
+"  set termguicolors?
 "endif
 
 " Ativar destaque de cores em QUALQUER tipo de arquivo
