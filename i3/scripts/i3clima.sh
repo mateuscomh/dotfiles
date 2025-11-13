@@ -12,7 +12,7 @@ get_weather_info() {
 
     # Obtém o clima do wttr.in com timeout de 10 segundos
     result=$(curl -s --max-time 10 "wttr.in?format=1" | sed 's/ //g') && \
-    result1=$(curl -s --max-time 10 "wttr.in/Juiz+de+Fora?format=%m")
+    result1=$(curl -s --max-time 10 "wttr.in/Sao+Joao+del+Rei?format=%m")
 
     # Verifica se a resposta é válida
     if [[ -z $result || $result =~ "Unknown" || $result =~ "html" || ! $result =~ [0-9]+°C ]]; then
@@ -21,7 +21,7 @@ get_weather_info() {
 
         # Tenta obter o clima da API alternativa
         sleep 3
-        result=$(curl -s "https://api.open-meteo.com/v1/forecast?latitude=-21.7642&longitude=-43.3503&current=temperature_2m&timezone=America%2FSao_Paulo" \
+        result=$(curl -s "https://api.open-meteo.com/v1/forecast?latitude=-21.1289&longitude=-44.2562&current=temperature_2m&timezone=America%2FSao_Paulo" \
             | jq -r '.current.temperature_2m')
 
         # Adiciona o símbolo de grau Celsius à temperatura
