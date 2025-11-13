@@ -45,7 +45,8 @@ cleanup() {
         pkill -P "$key_monitor_pid" 2>/dev/null || true
         kill "$key_monitor_pid"
     fi
-    rm -f "$TEMP_BG"
+ rm -f "$TEMP_BG"
+ pkill -USR1 picom &>/dev/null || true # Retoma o picom
 }
 
 # Centraliza o comando i3lock-color
@@ -99,7 +100,9 @@ fi
 
 # Se o tempo de fade for 0 (por "now" ou pelo parâmetro 0), bloqueia imediatamente
 if [[ "$FADE_SECONDS" -eq 0 ]]; then
+    pkill -USR1 picom &>/dev/null || true
     scrot -o "$TEMP_BG"
+    sleep 0.5
     convert "$TEMP_BG" -filter Gaussian -blur "$BLUR_LEVEL" "$TEMP_BG"
     execute_lock
     exit 0
