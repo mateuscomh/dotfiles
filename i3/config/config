@@ -79,7 +79,7 @@ exec --no-startup-id xautolock \
 bindsym $mod+l exec $i3lockscreen now 
 
 # Set screen wallpaper
-set $setScreenWallpaper ~/dotfiles/i3/wallpaper/horgalaxyR.jpg /home/salaam/dotfiles/i3/wallpaper/horgalaxyL.jpg 
+set $setScreenWallpaper ~/dotfiles/i3/wallpaper/horgalaxyL.jpg /home/salaam/dotfiles/i3/wallpaper/horgalaxyR.jpg 
 
 
 # The middle button and a modifer over any part of the window kills the window
@@ -288,7 +288,7 @@ exec --no-startup-id export XCURSOR_SIZE=16
 exec --no-startup-id export XCURSOR_THEME=Breeze-Dark
 
 bindsym $mod+k exec ~/.screenlayout/dell.sh 
-bindsym $mod+j exec ~/.screenlayout/dell_vert.sh 
+bindsym $mod+j exec ~/.screenlayout/monitoroff.sh
 bindsym $mod+Shift+k exec ~/.screenlayout/2dell_vert.sh && feh --bg-fill $setScreenWallpaper
 
 # Set layoyt keyboard
