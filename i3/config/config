@@ -202,6 +202,7 @@ for_window [class="VirtualBox Manager"] floating enable resize set 640 550
 for_window [class="Terminator"] floating enable resize set 640 550
 for_window [class="URxvt"] floating enable resize set 840 550
 for_window [class="Alacritty"] floating enable resize set 840 550
+for_window [class="kitty"] floating enable resize set 840 550
 for_window [class="Blueman-manager"] floating enable resize set 640 450
 for_window [class="xfce4-terminal"] floating enable resize set 840 550
 for_window [class="Xmessage"] floating enable resize set 200 90 title_align center
@@ -301,8 +302,8 @@ bindsym $mod+Shift+t exec setxkbmap -layout us -variant intl
 bindsym $mod+Shift+q kill
 
 # Apps Shortcut
-bindsym $mod+Return exec /usr/bin/alacritty
-bindsym $mod+shift+Return exec /usr/bin/urxvt
+bindsym $mod+Shift+Return exec /usr/bin/alacritty
+bindsym $mod+Return exec /usr/bin/kitty
 bindsym $mod+q exec /usr/bin/xfce4-appfinder
 bindsym $mod+g exec /usr/bin/brave-browser --force-dark "https://meutimao.com.br"
 bindsym $mod+shift+g exec /usr/bin/firefox
