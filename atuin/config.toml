@@ -75,7 +75,7 @@
  invert = false
 
 ## Defaults to false. If enabled, when triggered after && or ||, Atuin will complete commands to chain rather than replace the current line.
-command_chaining = false
+command_chaining = true
 
 ## enable or disable showing a preview of the selected command
 ## useful when the command is longer than the terminal width and is cut off
@@ -288,3 +288,4 @@ records = true
 [dotfiles]
   enabled = true
 
+store_failed = true
