@@ -309,11 +309,13 @@ bindsym $mod+g exec /usr/bin/brave-browser --force-dark "https://meutimao.com.br
 bindsym $mod+shift+g exec /usr/bin/firefox
 bindsym $mod+e exec /usr/bin/nemo
 bindsym $mod+p exec /usr/bin/flameshot gui
+bindsym $mod+o exec /usr/bin/xset dpms force standby -r 10 
 bindsym $mod+c exec /usr/bin/zenity --calendar
 bindsym $mod+shift+b exec /usr/bin/gnome-calculator
 bindsym $mod+shift+m exec --no-startup-id sudo systemctl restart logid
 bindsym $mod+shift+c exec /usr/bin/speedcrunch
 bindsym $mod+shift+p exec ${HOME}/.config/ocr/flameshot_ocr.sh
+
 
 # Move container to the current position of the cursor
 bindsym $mod+m move position mouse

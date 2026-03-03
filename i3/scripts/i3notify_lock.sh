@@ -23,7 +23,7 @@ fi
 
 # --- Configurações ---
 FADE_SECONDS=20       # Duração PADRÃO do efeito de fade em segundos
-BLUR_LEVEL="0x55"     # Nível de blur para o ImageMagick
+BLUR_LEVEL="0x5"     # Nível de blur para o ImageMagick
 TEMP_BG="/tmp/lockscreen.png"
 
 # --- Variáveis Globais para PIDs em background ---
@@ -123,7 +123,8 @@ done
 
 # 2. Capturar tela e iniciar blur em background
 scrot -o "$TEMP_BG"
-convert "$TEMP_BG" -filter Gaussian -blur "$BLUR_LEVEL" "$TEMP_BG" &
+#convert "$TEMP_BG" -filter Gaussian -blur "$BLUR_LEVEL" "$TEMP_BG" &
+convert "$TEMP_BG" -scale 10% -filter Gaussian -blur "$BLUR_LEVEL" -scale 1000% "$TEMP_BG" &
 blur_pid=$!
 
 # 3. Iniciar listener de teclado
@@ -162,11 +163,13 @@ for ((i = 0; i < steps; i++)); do
     for output in "${outputs[@]}"; do
         xrandr_args+=(--output "$output" --brightness "$current_brightness")
     done
+#    pkill -USR1 picom &>/dev/null || true
     xrandr "${xrandr_args[@]}"
 
     sleep 0.05
 done
 
+pkill -USR1 picom &>/dev/null || true
 # Espera o processo de blur terminar
 wait "$blur_pid"
 

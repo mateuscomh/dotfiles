@@ -3,6 +3,9 @@
 ## windows: %USERPROFILE%/.local/share/atuin/history.db
  db_path = "~/.local/share/atuin/history.db"
 
+# [ui]
+columns = ["duration", "time", "command"]
+
 ## where to store your encryption key, default is your system data directory
 ## linux/mac: ~/.local/share/atuin/key
 ## windows: %USERPROFILE%/.local/share/atuin/key
@@ -69,7 +72,7 @@
 
 ## the maximum number of lines the interface should take up
 ## set it to 0 to always go full screen
- inline_height = 15
+ inline_height = 19
 
 ## Invert the UI - put the search bar at the top , Default to `false`
  invert = false
@@ -138,7 +141,7 @@ command_chaining = true
 ## only be hidden if there are fewer than this count of lines available, and does not affect the use
 ## of keyboard shortcuts to switch tab. 0 to never auto-hide, default is 8 (lines).
 ## This is ignored except in `compact` mode.
-# auto_hide_height = 8
+ #auto_hide_height = 8
 
 ## Defaults to true. This matches history against a set of default regex, and will not save it if we get a match. Defaults include
 ## 1. AWS key id
@@ -189,17 +192,17 @@ enter_accept = false
    "ip",
    "atuin",
    "systemctl",
+   "kubectl",
    "tmux",
    "curl",
    "cat",
+   "go",
    "bash"
 #   "nmcli",
 #   "npm",
 #   "pecl",
 #   "pnpm",
 #   "port",
-#   "go",
-#   "kubectl",
 #   "nix",
 #   "composer",
 #   "dnf",
@@ -289,3 +292,20 @@ records = true
   enabled = true
 
 store_failed = true
+
+
+[tmux]
+## Enable using atuin with tmux popup (requires tmux >= 3.2)
+## When enabled and running inside tmux, Atuin will use a popup window for interactive search.
+## Set to false to disable the popup.
+## This can also be controlled with the ATUIN_TMUX_POPUP environment variable.
+## Note: The tmux popup is currently supported in zsh, bash, and fish shells. This currently doesn't work with iTerm native tmux integration.
+ enabled = false 
+
+## Width of the tmux popup window
+## Can be a percentage, or integer (e.g. "100" means 100 characters wide)
+ width = "50%"
+
+## Height of the tmux popup window
+## Can be a percentage, or integer (e.g. "100" means 100 lines tall)
+ height = "50%"
