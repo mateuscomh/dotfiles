@@ -3,9 +3,6 @@
 ## windows: %USERPROFILE%/.local/share/atuin/history.db
  db_path = "~/.local/share/atuin/history.db"
 
-# [ui]
-columns = ["duration", "time", "command"]
-
 ## where to store your encryption key, default is your system data directory
 ## linux/mac: ~/.local/share/atuin/key
 ## windows: %USERPROFILE%/.local/share/atuin/key
@@ -73,6 +70,9 @@ columns = ["duration", "time", "command"]
 ## the maximum number of lines the interface should take up
 ## set it to 0 to always go full screen
  inline_height = 19
+
+[ui]
+columns = ["duration", { type = "time", width = 6 } , "command", "host"]
 
 ## Invert the UI - put the search bar at the top , Default to `false`
  invert = false
@@ -293,7 +293,6 @@ records = true
 
 store_failed = true
 
-
 [tmux]
 ## Enable using atuin with tmux popup (requires tmux >= 3.2)
 ## When enabled and running inside tmux, Atuin will use a popup window for interactive search.
@@ -304,7 +303,7 @@ store_failed = true
 
 ## Width of the tmux popup window
 ## Can be a percentage, or integer (e.g. "100" means 100 characters wide)
- width = "50%"
+ width = "80%"
 
 ## Height of the tmux popup window
 ## Can be a percentage, or integer (e.g. "100" means 100 lines tall)
