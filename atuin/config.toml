@@ -38,7 +38,7 @@
 
 ## which search mode to use
 ## possible values: prefix, fulltext, fuzzy, skim
- search_mode = "fulltext"
+ search_mode = "fuzzy"
 
 ## which filter mode to use by default
 ## possible values: "global", "host", "session", "directory", "workspace"
@@ -245,9 +245,11 @@ records = true
 ## static: length of the longest command stored in the history.
  strategy = "auto"
 
-[daemon]
+#[daemon]
+
 ## Enables using the daemon to sync. Requires the daemon to be running in the background. Start it with `atuin daemon`
-# enabled = false
+ enabled = true
+ autostart = true
 
 ## How often the daemon should sync in seconds
 # sync_frequency = 300
@@ -308,3 +310,10 @@ store_failed = true
 ## Height of the tmux popup window
 ## Can be a percentage, or integer (e.g. "100" means 100 lines tall)
  height = "50%"
+
+ [daemon]
+enabled = true
+autostart = true
+
+[ai]
+enabled = true
