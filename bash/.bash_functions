@@ -51,8 +51,7 @@ getclip() {
 # tla/tlr: Funções para lista de tarefas (ToDo)
 export TODO="${HOME}/.todo.txt"
 [ ! -f "$TODO" ] && touch "$TODO"
-tla() { [ "$#" -eq 0 ] && echo "------" || echo "$(echo $* | md5sum | cut -c 1-3) → $(date +"%d-%m %H:%M")\
-     $* " >> $TODO && cat $TODO;}
+tla() { [ "$#" -eq 0 ] && echo "------" || echo "$(echo $* | md5sum | cut -c 1-3) → $(date +"%d-%m-%y %H:%M") • $* " >> $TODO && cat $TODO;}
 tlr() { [ $# -eq 0 ] && echo "------" || sed -i "/^$*/d" $TODO && cat $TODO;}
 #-----------------------
 
@@ -246,25 +245,29 @@ zipdir() {
 
 
 # Extrai vários formatos
-function extract() {
+extract() {
   if [ -f "$1" ]; then
+    run() {
+      "$@" || { echo "Erro ao extrair $1"; return 1; }
+    }
+
     case "$1" in
-      *.tar.bz2)   tar xvjf "$1"    ;;
-      *.tar.gz)    tar xvzf "$1"    ;;
-      *.bz2)       bunzip2 "$1"     ;;
-      *.rar)       unrar x "$1"     ;;
-      *.gz)        gunzip "$1"      ;;
-      *.tar)       tar xvf "$1"     ;;
-      *.tbz2)      tar xvjf "$1"    ;;
-      *.tgz)       tar xvzf "$1"    ;;
-      *.zip)       unzip "$1"       ;;
-      *.Z)         uncompress "$1"  ;;
-      *.7z)        7z x "$1"        ;;
-      *.tar.xz)    tar xvf "$1"     ;; 
-      *)           echo "'$1' não pode ser extraído via extract()" ;;
+      *.tar.bz2) run tar xvjf "$1" ;;
+      *.tar.gz)  run tar xvzf "$1" ;;
+      *.tar.xz)  run tar xvJf "$1" ;;
+      *.bz2)     run bunzip2 -k "$1" ;;
+      *.gz)      run gunzip -k "$1" ;;
+      *.tar)     run tar xvf "$1" ;;
+      *.tbz2)    run tar xvjf "$1" ;;
+      *.tgz)     run tar xvzf "$1" ;;
+      *.zip)     run unzip -n "$1" ;;
+      *.rar)     run unrar x -o- "$1" ;;
+      *.7z)      run 7z x -aos "$1" ;;
+      *.xz)      run xz -dk "$1" ;;
+      *) echo "Formato não suportado: $1" ;;
     esac
   else
-    echo "'$1' não é um arquivo válido"
+    echo "Arquivo inválido: $1"
   fi
 }
 
