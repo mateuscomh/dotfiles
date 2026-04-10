@@ -188,45 +188,66 @@ deduplicates() {
 }
 
 transfer() {
-	local url='http://172.16.10.199:9997'
-	local file
-	local file_name
+    local url="${TRANSFER_URL:-http://blade.local:9997}"
+    local file
+    local file_name
 
-	uploadFile() {
-		curl --progress-bar --upload-file "-" "${url}/${file_name}" |
-			tee /dev/null
-	}
+    # detecta clipboard automaticamente
+    copy_clipboard() {
+        if command -v xclip >/dev/null 2>&1; then
+            xclip -selection clipboard
+        elif command -v wl-copy >/dev/null 2>&1; then
+            wl-copy
+        elif command -v pbcopy >/dev/null 2>&1; then
+            pbcopy
+        else
+            cat >/dev/null
+        fi
+    }
 
-	# usage
-	if [ $# -eq 0 ]; then
-		echo -e "No arguments specified.\nUsage:\n  transfer <file|directory>\n  ... | transfer <file_name>" >&2
-		return 1
-	fi
+    # gera nome simples
+    gen_name() {
+        date +%s
+    }
 
-	# check if there's a terminal connected to the standard input
-	if tty -s; then
-		file="$1"
-		file_name=$(basename "$file")
+    uploadFile() {
+        curl -s --upload-file "-" "${url}/${file_name}" \
+            | tee >(copy_clipboard)
+    }
 
-		if [ ! -e "$file" ]; then
-			echo "$file: No such file or directory" >&2
-			return 1
-		fi
+    if [ $# -eq 0 ]; then
+        echo -e "Usage:\n  transfer <file|directory>\n  ... | transfer <file_name>" >&2
+        return 1
+    fi
 
-		# if it's a dir, create a zip
-		if [ -d "$file" ]; then
-			# shellcheck disable=2288
-			file_name="$file_name.zip" ,
-			(cd "$file" && zip -r -q - .) | uploadFile
-		else
-			uploadFile <"${file}"
-		fi
+    if tty -s; then
+        file="$1"
 
-	else
-		file_name=$1
-		uploadFile
-	fi
-	echo
+        if [ ! -e "$file" ]; then
+            echo "$file: No such file or directory" >&2
+            return 1
+        fi
+
+        # nome simples + extensão (se existir)
+        ext="${file##*.}"
+        if [ "$file" = "$ext" ]; then
+            file_name="$(gen_name)"
+        else
+            file_name="$(gen_name).${ext}"
+        fi
+
+        if [ -d "$file" ]; then
+            file_name="$(gen_name).zip"
+            (cd "$file" && zip -r -q - .) | uploadFile
+        else
+            uploadFile <"$file"
+        fi
+    else
+        file_name="$(gen_name)"
+        uploadFile
+    fi
+
+    echo
 }
 
 # Compacta diretório em zip
