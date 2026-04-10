@@ -2,7 +2,7 @@ call plug#begin('~/.vim/plugged')
  Plug 'mboughaba/i3config.vim'
  Plug 'mg979/vim-visual-multi', {'branch': 'master'}
  Plug 'vim-airline/vim-airline'
- Plug 'scrooloose/Syntastic'
+" Plug 'scrooloose/Syntastic'
  Plug 'vim-airline/vim-airline-themes'
  Plug 'junegunn/vim-easy-align'
  Plug 'ekalinin/dockerfile.vim'
@@ -14,6 +14,7 @@ call plug#begin('~/.vim/plugged')
  Plug 'dense-analysis/ale'
  Plug 'jiangmiao/auto-pairs'
  Plug 'catppuccin/nvim', { 'as': 'catppuccin' }
+"Plug 'neovim/nvim-lspconfig'
 call plug#end()
 
 "------------Tema do nvim------------
@@ -213,14 +214,17 @@ vmap > >gv
 
 " Habilita linters para cada linguagem
 let g:ale_linters = {
-\   'yaml': ['yamllint'],
+\   'yaml': ['yamllint', 'kubeconform'],
 \   'sh': ['shellcheck'],
 \   'ansible': ['ansible_lint'],
 \   'go': ['golangci-lint'],
 \   'json': ['jsonlint'],
 \   'vim': ['vimt']
 \}
+
+autocmd BufRead,BufNewFile *.yaml,*.yml set filetype=yaml
 let g:ale_sign_error = '>>'       " Sinal para erros
+let g:ale_yaml_kubeconform_options = '--strict'
 let g:ale_sign_warning = '--'     " Sinal para avisos
 
 "-----Selecao highlight palavras-----
