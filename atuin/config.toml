@@ -38,7 +38,6 @@
 
 ## which search mode to use
 ## possible values: prefix, fulltext, fuzzy, skim
- search_mode = "fuzzy"
 
 ## which filter mode to use by default
 ## possible values: "global", "host", "session", "directory", "workspace"
@@ -245,14 +244,8 @@ records = true
 ## static: length of the longest command stored in the history.
  strategy = "auto"
 
-#[daemon]
-
-## Enables using the daemon to sync. Requires the daemon to be running in the background. Start it with `atuin daemon`
- enabled = true
- autostart = true
-
 ## How often the daemon should sync in seconds
-# sync_frequency = 300
+ sync_frequency = 300
 
 ## The path to the unix socket used by the daemon (on unix systems)
 ## linux/mac: ~/.local/share/atuin/atuin.sock
@@ -288,7 +281,7 @@ records = true
 ## The list of enabled filter modes, in order of priority.
 ## The "workspace" mode is skipped when not in a workspace or workspaces = false.
 ## Default filter mode can be overridden with the filter_mode setting.
- filters = [ "global", "host", "session", "workspace", "directory" ]
+ filters = [ "global", "host", "session", "workspace", "directory"]
 
 [dotfiles]
   enabled = true
@@ -311,7 +304,7 @@ store_failed = true
 ## Can be a percentage, or integer (e.g. "100" means 100 lines tall)
  height = "50%"
 
- [daemon]
+[daemon]
 enabled = true
 autostart = true
 
