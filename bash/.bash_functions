@@ -9,15 +9,15 @@ if [[ -z "${ansiRed}" ]]; then
 	readonly ansiNoColor='\e[0m'
 fi
 
-echoRed() {
+echord() {
 	echo -e "${ansiRed}$*${ansiNoColor}"
 }
 
-echoGreen() {
+echogr() {
 	echo -e "${ansiGreen}$*${ansiNoColor}"
 }
 
-echoYellow() {
+echoyl() {
 	echo -e "${ansiYellow}$*${ansiNoColor}"
 }
 
@@ -37,22 +37,22 @@ dud() {
 #-----------------------
 
 # putclip: sends the clipboard to output
-putclip(){
-  xclip -selection clipboard -o
+putclip() {
+	xclip -selection clipboard -o
 }
 #--------------------
 
 # getclip: spits the clipboard on stdout
 getclip() {
-  xclip -selection clipboard <<< "$*"
+	xclip -selection clipboard <<<"$*"
 }
 #-----------------------
 
 # tla/tlr: Funções para lista de tarefas (ToDo)
 export TODO="${HOME}/.todo.txt"
 [ ! -f "$TODO" ] && touch "$TODO"
-tla() { [ "$#" -eq 0 ] && echo "------" || echo "$(echo $* | md5sum | cut -c 1-3) → $(date +"%d-%m-%y %H:%M") • $* " >> $TODO && cat $TODO;}
-tlr() { [ $# -eq 0 ] && echo "------" || sed -i "/^$*/d" $TODO && cat $TODO;}
+tla() { [ "$#" -eq 0 ] && echo "------" || echo "$(echo $* | md5sum | cut -c 1-3) → $(date +"%d-%m-%y %H:%M") • $* " >>$TODO && cat $TODO; }
+tlr() { [ $# -eq 0 ] && echo "------" || sed -i "/^$*/d" $TODO && cat $TODO; }
 #-----------------------
 
 # lauch(): launch a aplication from terminal
@@ -74,60 +74,63 @@ launch() {
 # Função 'gd' para navegação rápida entre diretórios
 # gd em https://codeberg.org/blau_araujo/gd-function
 gd() {
-    local sel dir dirs dirs_hist dirs_home IFS fzf
-    fzf=(
-        fzf
-        --reverse -e -i -1
-        --prompt='📂 Ir para: '
-        --height=15%
-        --border=horizontal
-        --info=inline
-    )
+	local sel dir dirs dirs_hist dirs_home IFS fzf
+	fzf=(
+		fzf
+		--reverse -e -i -1
+		--prompt='📂 Ir para: '
+		--height=15%
+		--border=horizontal
+		--info=inline
+	)
 
-    [[ $# -le 1 ]] || { echo 'gd: Excesso de argumentos!' 1>&2; return 1; }
-    
-    dir="${1:-$HOME}"
+	[[ $# -le 1 ]] || {
+		echo 'gd: Excesso de argumentos!' 1>&2
+		return 1
+	}
 
-    case "$dir" in
-        -)  dir="";; 
-        --) 
-            # O segredo aqui é o -not -path '*/.*' para remover ocultas
-            dir=$(find "$HOME" -maxdepth 5 \
-                -type d \( -name ".git" -o -name "node_modules" -o -name ".*" \) -prune \
-                -o -type d -print 2>/dev/null | "${fzf[@]}" || return 0)
-            ;;
-    esac
+	dir="${1:-$HOME}"
 
-    if [[ -d "$dir" ]]; then
-        pushd "$dir" > /dev/null && { 
-            echo -e "\033[1;32m➜\033[0m $(pwd)"
-            return
-        }
-    fi
+	case "$dir" in
+	-) dir="" ;;
+	--)
+		# O segredo aqui é o -not -path '*/.*' para remover ocultas
+		dir=$(find "$HOME" -maxdepth 5 \
+			-type d \( -name ".git" -o -name "node_modules" -o -name ".*" \) -prune \
+			-o -type d -print 2>/dev/null | "${fzf[@]}" || return 0)
+		;;
+	esac
 
-    # Busca rápida (histórico + home) ignorando o lixo
-    dirs_hist=$(dirs -l -p | grep -i "$dir")
-    dirs_home=$(find ~ -maxdepth 3 \
-        -type d \( -name ".git" -o -name "node_modules" -o -name ".*" \) -prune \
-        -o -type d -iname "*$dir*" -print 2>/dev/null)
+	if [[ -d "$dir" ]]; then
+		pushd "$dir" >/dev/null && {
+			echo -e "\033[1;32m➜\033[0m $(pwd)"
+			return
+		}
+	fi
 
-    IFS=$'\n'
-    dirs=(
-        ${dirs_hist:+"$dirs_hist"}
-        ${dirs_home:+"$dirs_home"}
-    )
+	# Busca rápida (histórico + home) ignorando o lixo
+	dirs_hist=$(dirs -l -p | grep -i "$dir")
+	dirs_home=$(find ~ -maxdepth 3 \
+		-type d \( -name ".git" -o -name "node_modules" -o -name ".*" \) -prune \
+		-o -type d -iname "*$dir*" -print 2>/dev/null)
 
-    if ((${#dirs[@]} == 0)); then
-        echo "gd: '$dir': Diretório não encontrado" 1>&2
-        return 2
-    fi
+	IFS=$'\n'
+	dirs=(
+		${dirs_hist:+"$dirs_hist"}
+		${dirs_home:+"$dirs_home"}
+	)
 
-    sel=$(printf '%s\n' "${dirs[@]}" | awk '!i[$0]++' | "${fzf[@]}" || return 0)
-    
-    if [[ -n "$sel" ]]; then
-        pushd "$sel" > /dev/null
-        echo -e "\033[1;32m➜\033[0m $(pwd)"
-    fi
+	if ((${#dirs[@]} == 0)); then
+		echo "gd: '$dir': Diretório não encontrado" 1>&2
+		return 2
+	fi
+
+	sel=$(printf '%s\n' "${dirs[@]}" | awk '!i[$0]++' | "${fzf[@]}" || return 0)
+
+	if [[ -n "$sel" ]]; then
+		pushd "$sel" >/dev/null
+		echo -e "\033[1;32m➜\033[0m $(pwd)"
+	fi
 }
 complete -F _cd gd
 #-----------------------
@@ -173,19 +176,19 @@ google() {
 
 # deduplicates: Check in folder if have files duplicates.
 deduplicates() {
-    local path="${1:-.}"
-    local depth="${2:-1}"
-    echo "🔍 Procurando por arquivos duplicados com base em MD5..."
-    echo "📂 Diretório alvo: $path"
-    echo "📏 Profundidade máxima: $depth"
-    echo "⏳ Calculando hashes MD5 e buscando duplicatas..."
+	local path="${1:-.}"
+	local depth="${2:-1}"
+	echo "🔍 Procurando por arquivos duplicados com base em MD5..."
+	echo "📂 Diretório alvo: $path"
+	echo "📏 Profundidade máxima: $depth"
+	echo "⏳ Calculando hashes MD5 e buscando duplicatas..."
 
-    find "$path" -maxdepth "$depth" -type f -exec md5sum '{}' \; | sort | uniq -Dw 32
-    echo "✅ Busca concluída! Se houver duplicatas, elas serão listadas acima."
+	find "$path" -maxdepth "$depth" -type f -exec md5sum '{}' \; | sort | uniq -Dw 32
+	echo "✅ Busca concluída! Se houver duplicatas, elas serão listadas acima."
 }
 
 transfer() {
-	local url='https://transfer.sh'
+	local url='http://172.16.10.199:9997'
 	local file
 	local file_name
 
@@ -226,85 +229,112 @@ transfer() {
 	echo
 }
 
-
 # Compacta diretório em zip
 zipdir() {
-    dir="${1%/}"
-    base="$(basename "$dir")"
-    parent="$(dirname "$dir")"
-    outfile="${parent}/${base}.zip"
+	dir="${1%/}"
+	base="$(basename "$dir")"
+	parent="$(dirname "$dir")"
+	outfile="${parent}/${base}.zip"
 
-    (
-        cd "$parent" || exit 1
-        zip -rv "$outfile" "$base" 
-    )
+	(
+		cd "$parent" || exit 1
+		zip -rv "$outfile" "$base"
+	)
 
-    abs_outfile=$(readlink -f "$outfile")
-    echo "Arquivo salvo em: $abs_outfile"
+	abs_outfile=$(readlink -f "$outfile")
+	echo "Arquivo salvo em: $abs_outfile"
 }
-
 
 # Extrai vários formatos
 extract() {
-  if [ -f "$1" ]; then
-    run() {
-      "$@" || { echo "Erro ao extrair $1"; return 1; }
-    }
+	if [ -f "$1" ]; then
+		run() {
+			"$@" || {
+				echo "Erro ao extrair $1"
+				return 1
+			}
+		}
 
-    case "$1" in
-      *.tar.bz2) run tar xvjf "$1" ;;
-      *.tar.gz)  run tar xvzf "$1" ;;
-      *.tar.xz)  run tar xvJf "$1" ;;
-      *.bz2)     run bunzip2 -k "$1" ;;
-      *.gz)      run gunzip -k "$1" ;;
-      *.tar)     run tar xvf "$1" ;;
-      *.tbz2)    run tar xvjf "$1" ;;
-      *.tgz)     run tar xvzf "$1" ;;
-      *.zip)     run unzip -n "$1" ;;
-      *.rar)     run unrar x -o- "$1" ;;
-      *.7z)      run 7z x -aos "$1" ;;
-      *.xz)      run xz -dk "$1" ;;
-      *) echo "Formato não suportado: $1" ;;
-    esac
-  else
-    echo "Arquivo inválido: $1"
-  fi
+		case "$1" in
+		*.tar.bz2) run tar xvjf "$1" ;;
+		*.tar.gz) run tar xvzf "$1" ;;
+		*.tar.xz) run tar xvJf "$1" ;;
+		*.bz2) run bunzip2 -k "$1" ;;
+		*.gz) run gunzip -k "$1" ;;
+		*.tar) run tar xvf "$1" ;;
+		*.tbz2) run tar xvjf "$1" ;;
+		*.tgz) run tar xvzf "$1" ;;
+		*.zip) run unzip -n "$1" ;;
+		*.rar) run unrar x -o- "$1" ;;
+		*.7z) run 7z x -aos "$1" ;;
+		*.xz) run xz -dk "$1" ;;
+		*) echo "Formato não suportado: $1" ;;
+		esac
+	else
+		echo "Arquivo inválido: $1"
+	fi
 }
 
 #Executa varios comandos em linha
 runx() {
-    for cmd in "$@"; do
-        eval "$cmd"
-    done
+	for cmd in "$@"; do
+		eval "$cmd"
+	done
 }
 
 #Funcao recorte de ip do host
 ipa() {
-    ip -4 -o addr show | awk '{print $2 ": " $4}'
+	ip -4 -o addr show | awk '{print $2 ": " $4}'
 }
 
 #Funcao criar pasta e entrar
 mkd() {
-    mkdir -p "$1" && cd "$1" || {
-        echo "Erro ao entrar no diretório: $1" >&2
-        return 1
-    }
+	mkdir -p "$1" && cd "$1" || {
+		echo "Erro ao entrar no diretório: $1" >&2
+		return 1
+	}
 }
 
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
 	command yazi "$@" --cwd-file="$tmp"
-	IFS= read -r -d '' cwd < "$tmp"
+	IFS= read -r -d '' cwd <"$tmp"
 	[ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
 	rm -f -- "$tmp"
 }
 
 #Navega com cd -[0-9] para retornar diretorios
 cd() {
-    if [[ $1 =~ ^-([0-9]+)$ ]]; then
-        builtin cd "$(printf '../%.0s' $(seq 1 "${BASH_REMATCH[1]}"))"
-    else
-        builtin cd "$@"
-    fi
+	if [[ $1 =~ ^-([0-9]+)$ ]]; then
+		builtin cd "$(printf '../%.0s' $(seq 1 "${BASH_REMATCH[1]}"))"
+	else
+		builtin cd "$@"
+	fi
 }
 
+
+rget() {
+  if [ $# -lt 2 ]; then
+    echo "Uso: rget <host> </caminho/remoto> [destino]"
+    return 1
+  fi
+
+  HOST="$1"
+  REMOTE_PATH="$2"
+  DEST="${3:-.}"
+
+  rsync -avz --progress "$HOST:$REMOTE_PATH" "$DEST"
+}
+
+docker-clean() {
+  docker system prune -af --volumes
+}
+
+serve() {
+  local port="${1:-8000}"
+  python3 -m http.server "$port"
+}
+
+cheat() {
+  curl -s "https://cheat.sh/$1"
+}
