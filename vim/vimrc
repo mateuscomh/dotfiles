@@ -1,12 +1,9 @@
 "--------Instalador de plugins----------
 call plug#begin('~/.vim/plugged')
-" Plug 'johngrib/vim-game-snake'
-"Plug 'catppuccin/vim', { 'as': 'catppuccin' }
  Plug 'mboughaba/i3config.vim'
  Plug 'ap/vim-css-color'
  Plug 'morhetz/gruvbox'
  Plug 'vim-airline/vim-airline'
- Plug 'scrooloose/Syntastic'
  Plug 'vim-airline/vim-airline-themes'
  Plug 'junegunn/vim-easy-align'
  Plug 'scrooloose/nerdtree', { 'on': 'NERDTreeToggle' }
@@ -16,7 +13,12 @@ call plug#begin('~/.vim/plugged')
  Plug 'vim-scripts/loremipsum'
  Plug 'ekalinin/dockerfile.vim'
  Plug 'mg979/vim-visual-multi'
-
+ Plug 'stephpy/vim-yaml'
+ Plug 'dense-analysis/ale'
+ Plug 'vim-scripts/kubernetes.vim'
+" Plug 'johngrib/vim-game-snake'
+" Plug 'catppuccin/vim', { 'as': 'catppuccin' }
+" Plug 'scrooloose/Syntastic'
 call plug#end()
 
 "--------Tabulacao----------
@@ -218,3 +220,18 @@ map <f7> :term bash ./%<cr>
 "-----Indentar visual mode----
 vmap < <gv
 vmap > >gv
+
+" ---------- ALE ----------
+let g:ale_linters = {
+\ 'yaml': ['yamllint', 'kubeval']
+\}
+
+let g:ale_fixers = {
+\ 'yaml': ['prettier']
+\}
+
+let g:ale_fix_on_save = 1
+
+autocmd BufRead,BufNewFile *.yaml,*.yml set filetype=yaml
+autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
+autocmd FileType yaml setlocal indentkeys-=0#
