@@ -310,7 +310,13 @@ ipa() {
 
 #Funcao criar pasta e entrar
 mkd() {
-	mkdir -p "$1" && cd "$1" || {
+	[[ -z "$1" ]] && {
+		echo "Uso: mkd <diretório>" >&2
+		return 1
+	}
+
+	mkdir -p -- "$1" &&
+	cd -P -- "$1" || {
 		echo "Erro ao entrar no diretório: $1" >&2
 		return 1
 	}
