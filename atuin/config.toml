@@ -29,7 +29,7 @@
  update_check = true
 
 ## address of the sync server
- sync_address = "http://192.168.2.186:8888"
+ sync_address = "http://172.16.10.199:8888"
 
 ## how often to sync history. note that this is only triggered when a command
 ## is ran, so sync intervals may well be longer
@@ -261,3 +261,6 @@ records = true
 ## The "workspace" mode is skipped when not in a workspace or workspaces = false.
 ## Default filter mode can be overridden with the filter_mode setting.
  filters = [ "host", "workspace", "session", "global", "directory" ]
+
+[dotfiles]
+enabled = true
