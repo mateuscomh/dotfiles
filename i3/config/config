@@ -85,7 +85,8 @@ exec --no-startup-id xautolock \
 bindsym $mod+l exec $i3lockscreen now 
 
 # Set screen wallpaper
-set $setScreenWallpaper ~/dotfiles/i3/wallpaper/horgalaxyL.jpg /home/salaam/dotfiles/i3/wallpaper/horgalaxyR.jpg 
+#set $setScreenWallpaper ~/dotfiles/i3/wallpaper/horgalaxyL.jpg /home/salaam/dotfiles/i3/wallpaper/horgalaxyR.jpg 
+set $setScreenWallpaper ~/dotfiles/i3/wallpaper/space-art-nebula-8k-jy-3840x2160.jpg
 
 
 # The middle button and a modifer over any part of the window kills the window
@@ -334,11 +335,11 @@ bindsym $mod+shift+z exec /usr/bin/solaar config "MX Master 2S" change-host 3
 # Sreen brightness controls
 bindsym XF86MonBrightnessUp exec xbacklight -inc 20 # increase screen brightness
 bindsym XF86MonBrightnessDown exec xbacklight -dec 20 # decrease screen brightness
-bindsym XF86AudioPlay exec  playerctl --player=spotify play-pause
-bindsym XF86AudioNext exec playerctl -a next
-bindsym XF86AudioPrev exec playerctl -a previous
-bindsym XF86AudioLowerVolume exec amixer -q sset Master 10%-
-bindsym XF86AudioRaiseVolume exec amixer -q sset Master 10%+
+bindsym --release XF86AudioPlay exec  playerctl --player=spotify play-pause
+bindsym --release XF86AudioNext exec playerctl -a next
+bindsym --release XF86AudioPrev exec playerctl -a previous
+bindsym --release XF86AudioLowerVolume exec amixer -q sset Master 10%-
+bindsym --release XF86AudioRaiseVolume exec amixer -q sset Master 10%+
 
 # Path to volume control, without trailing slash
 set $volumepath ~/i3-volume
@@ -348,16 +349,17 @@ set $volumestep 5
 set $statussig SIGUSR1 
 
 # Shutdown menu $mod+x
-mode "exit: [L]ogout, [R]eboot, [S]hutdown, loc[K]" {
+mode "exit: [L]ogout, [r]eboot, [R]soft Reboot, [S]hutdown, loc[K]" {
   bindsym l exec --no-startup-id i3-msg exit, mode "default"
   bindsym k exec --no-startup-id $i3lockscreen now, mode "default"
   bindsym r exec --no-startup-id /usr/sbin/shutdown -r now
   bindsym s exec --no-startup-id /usr/sbin/shutdown -h now
+  bindsym shift+r exec --no-startup-id sudo /usr/bin/systemctl soft-reboot
 
   bindsym Escape mode "default"
   bindsym Return mode "default"
 }
-bindsym $mod+x mode "exit: [L]ogout, [R]eboot, [S]hutdown, loc[K]"
+bindsym $mod+x mode "exit: [L]ogout, [r]eboot, [R]soft Reboot, [S]hutdown, loc[K]" 
 
 # Disable window titlebars
 for_window [class="^.*"] border pixel 0
