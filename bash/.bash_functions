@@ -365,3 +365,38 @@ serve() {
 cheat() {
   curl -s "https://cheat.sh/$1"
 }
+
+
+_base64_encode() {
+  if base64 --version 2>/dev/null | grep -q GNU; then
+    base64 -w0   # GNU/Linux
+  else
+    base64       # macOS/BSD (não quebra linha por padrão)
+  fi
+}
+
+b64e() {
+  if [ $# -gt 0 ]; then
+    printf '%s' "$*" | _base64_encode
+  else
+    _base64_encode
+  fi
+  echo
+}
+
+b64d() {
+  if [ $# -gt 0 ]; then
+    printf '%s' "$*" | base64 -d
+  else
+    base64 -d
+  fi
+  echo
+}
+
+## Base64 encode + copia pro clipboard
+#b64e(){ 
+#	printf '%s' "${*:-$(cat)}" | base64 -w0 | tee >(xclip -selection clipboard); echo; 
+#}
+#b64d(){
+#	printf '%s' "${*:-$(cat)}" | base64 -d | tee >(xclip -selection clipboard); echo; 
+#}
