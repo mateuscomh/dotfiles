@@ -309,4 +309,8 @@ enabled = true
 autostart = true
 
 [ai]
-enabled = false
+enabled = true
+[ai.capabilities]
+enable_history_search = false
+enable_file_tools = true
+enable_command_execution = true
