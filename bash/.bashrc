@@ -119,3 +119,7 @@ source "$HOME/.atuin/bin/env"
 #source "$HOME/.local/share/blesh/ble.sh"
 eval "$(atuin init bash --disable-up-arrow)"
 
+
+
+# Added by Antigravity CLI installer
+export PATH="/home/miles/.local/bin:$PATH"
