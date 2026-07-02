@@ -64,9 +64,16 @@ workspace "2:Browsers" output DP-2
 # Define a variável para o script de bloqueio
 set $i3lockscreen $HOME/scripts/i3notify_lock.sh 
 
+# Ativa o DPMS e define o tempo de suspensão para 15 minutos (900 segundos)
+exec --no-startup-id xset s 900 900
+exec --no-startup-id xset dpms 900 900 900
+
+
 #Teste para resolver blink screen
-exec --no-startup-id xset -dpms
-exec --no-startup-id xset s off
+#exec --no-startup-id xset -dpms
+#exec --no-startup-id xset s off
+
+
 #exec --no-startup-id xset dpms 0 0 9000
 
 # Inicia o xautolock
