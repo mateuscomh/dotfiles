@@ -40,6 +40,7 @@
 *.color15: #fdf6e3
 
 Xft.dpi: 96
+Xcursor.theme: Bibata-Modern-Ice
 Xcursor.size: 16
 
 !! URxvt Appearance
