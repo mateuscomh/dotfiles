@@ -393,6 +393,87 @@ b64d() {
   echo
 }
 
+SNIPS_HOST="172.16.10.199"
+SNIPS_PORT="2222"
+
+# Upload privado
+psnips() {
+    ssh "${SNIPS_HOST}" -p "${SNIPS_PORT}" -- -private
+}
+
+# Upload privado com TTL
+tsnips() {
+    local ttl="${1:-24h}"
+    ssh "${SNIPS_HOST}" -p "${SNIPS_PORT}" -private -ttl "$ttl"
+}
+
+# Download
+getsnips() {
+    ssh -p "${SNIPS_PORT}" "f:$1@${SNIPS_HOST}"
+}
+
+# Atualizar conteúdo
+updatesnips() {
+    local id="$1"
+    cat | ssh -p "${SNIPS_PORT}" "f:${id}:content@${SNIPS_HOST}"
+}
+
+# Remover
+delsnips() {
+    ssh -p "${SNIPS_PORT}" "f:$1@${SNIPS_HOST}" -- rm
+}
+
+# Gerar URL temporária
+tempsnips() {
+    local id="$1"
+    local ttl="${2:-24h}"
+    ssh -p "${SNIPS_PORT}" "f:${id}@${SNIPS_HOST}" sign -ttl "$ttl"
+}
+
+
+SNIPS_HOST="172.16.10.199"
+SNIPS_PORT="2222"
+
+_snips_clip() {
+  if command -v xclip >/dev/null 2>&1; then
+    xclip -selection clipboard
+  elif command -v xsel >/dev/null 2>&1; then
+    xsel --clipboard --input
+  elif command -v pbcopy >/dev/null 2>&1; then
+    pbcopy
+  elif command -v clip.exe >/dev/null 2>&1; then
+    clip.exe
+  else
+    cat >/dev/null
+    echo "aviso: nenhum utilitario de clipboard encontrado (xclip/xsel/pbcopy/clip.exe)" >&2
+  fi
+}
+
+_snips_url_to_clip() {
+  local clean url
+  # remove códigos ANSI (cores/sublinhado/etc)
+  clean="$(sed -E 's/\x1b\[[0-9;]*[a-zA-Z]//g')"
+  # pega a última URL http/https encontrada na saída
+  url="$(printf '%s\n' "$clean" | grep -oE 'https?://[^[:space:]]+' | tail -n1)"
+  if [ -n "$url" ]; then
+    printf '%s' "$url" | _snips_clip
+  fi
+}
+
+snips() {
+  if [ ! -t 0 ]; then
+    cat | ssh "${SNIPS_HOST}" -p "${SNIPS_PORT}" | tee >(_snips_url_to_clip)
+  elif [ -n "$1" ]; then
+    if [ -f "$1" ]; then
+      ssh "${SNIPS_HOST}" -p "${SNIPS_PORT}" < "$1" | tee >(_snips_url_to_clip)
+    else
+      printf '%s\n' "$*" | ssh "${SNIPS_HOST}" -p "${SNIPS_PORT}" | tee >(_snips_url_to_clip)
+    fi
+  else
+    ssh "${SNIPS_HOST}" -p "${SNIPS_PORT}"
+  fi
+}
+
 ## Base64 encode + copia pro clipboard
 #b64e(){ 
 #	printf '%s' "${*:-$(cat)}" | base64 -w0 | tee >(xclip -selection clipboard); echo; 
