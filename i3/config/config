@@ -34,8 +34,8 @@ exec_always --no-startup-id pkill compton; sleep 0.5; compton -f --backend glx -
 
 # Screen brightness adjust
 #bindsym $mod+shift+p exec /scripts/i3scripts/brilho.sh "r"
-bindsym $mod+shift+i exec /scripts/i3scripts/brilho.sh "-"
-bindsym $mod+shift+o exec /scripts/i3scripts/brilho.sh "+"
+#bindsym $mod+shift+i exec /scripts/i3scripts/brilho.sh "-"
+#bindsym $mod+shift+o exec /scripts/i3scripts/brilho.sh "+"
 bindsym $mod+Shift+s exec xautolock -disable && notify-send -u low -t 4000 'Bloqueio Suspenso'
 bindsym $mod+s exec xautolock -enable && notify-send -u critical -t 4000 'Bloqueio Ativo'
 
@@ -57,17 +57,10 @@ bindsym $mod+n move workspace to output next
 #Repeticao teclado
 exec_always --no-startup-id xset r rate 250 20
 
-# Customization workspace
-workspace "1:Terminals" output DP-2
-workspace "2:Browsers" output DP-2
-
 # Define a variável para o script de bloqueio
-set $i3lockscreen $HOME/scripts/i3notify_lock.sh 
+set $i3lockscreen "$HOME/scripts/i3notify_lock.sh"
 
 # Ativa o DPMS e define o tempo de suspensão para 15 minutos (900 segundos)
-exec --no-startup-id xset s 900 900
-exec --no-startup-id xset dpms 900 900 900
-
 
 #Teste para resolver blink screen
 #exec --no-startup-id xset -dpms
@@ -173,7 +166,6 @@ bindsym $mod+Shift+8 move container to workspace $ws8
 bindsym $mod+Shift+9 move container to workspace $ws9
 bindsym $mod+Shift+0 move container to workspace $ws10
 
-
 # Set workspace names 
 set $ws1 "1:Terminals" 
 set $ws2 "2:Browsers"
@@ -185,6 +177,9 @@ set $ws7 "7:Others"
 set $ws8 "8:Games"
 set $ws9 "9:Comunications"
 set $ws10 "10:Music"
+
+workspace $ws1 output DP-2
+workspace $ws2 output DP-2
 
 # Class aplications
 assign [class="X-terminal-emulator"] $ws1
@@ -318,6 +313,7 @@ bindsym $mod+Shift+t exec setxkbmap -layout us -variant intl
 bindsym $mod+Shift+q kill
 
 # Apps Shortcut
+#bindsym $mod+o exec /usr/bin/xset dpms force standby -r 10 
 bindsym $mod+Shift+Return exec /usr/bin/alacritty
 bindsym $mod+Return exec /usr/bin/kitty
 bindsym $mod+q exec /usr/bin/xfce4-appfinder
@@ -325,7 +321,6 @@ bindsym $mod+g exec /usr/bin/brave-browser --force-dark "https://meutimao.com.br
 bindsym $mod+shift+g exec /usr/bin/firefox
 bindsym $mod+e exec /usr/bin/nemo
 bindsym $mod+p exec /usr/bin/flameshot gui
-bindsym $mod+o exec /usr/bin/xset dpms force standby -r 10 
 bindsym $mod+c exec /usr/bin/zenity --calendar
 bindsym $mod+shift+b exec /usr/bin/gnome-calculator
 bindsym $mod+shift+m exec --no-startup-id sudo systemctl restart logid
@@ -347,6 +342,11 @@ bindsym --release XF86AudioNext exec playerctl -a next
 bindsym --release XF86AudioPrev exec playerctl -a previous
 bindsym --release XF86AudioLowerVolume exec amixer -q sset Master 10%-
 bindsym --release XF86AudioRaiseVolume exec amixer -q sset Master 10%+
+
+# Volume do monitor (DDC/CI)
+bindsym $mod+u exec --no-startup-id /home/salaam/scripts/monitor-volume.sh down
+bindsym $mod+o exec --no-startup-id /home/salaam/scripts/monitor-volume.sh up
+bindsym $mod+Shift+o exec --no-startup-id /home/salaam/scripts/monitor-volume.sh mute
 
 # Path to volume control, without trailing slash
 set $volumepath ~/i3-volume
