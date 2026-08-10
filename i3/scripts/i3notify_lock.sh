@@ -1,53 +1,75 @@
 #!/usr/bin/env bash
 
-###############################
-#  Script para i3-lock com notificação, fade-out e parâmetros
-#
-# Uso:
-#   ./script.sh         -> Bloqueia com o fade padrão
-#   ./script.sh now     -> Bloqueia instantaneamente
-#   ./script.sh <secs>  -> Bloqueia com um fade de <secs> segundos
-#
-# Requisitos:
-# - i3lock-color, xrandr, xdotool, dunst, scrot, convert, xinput
-# Version: 4.7.0
-###############################
+###############################################################################
+# i3-smart-lock.sh
+# Fluxo: Espera com progresso no Dunst -> Escurecimento Suave -> i3lock
+###############################################################################
 
-# Sair se um comando falhar
 set -e
 
-# Não executar se o i3lock já estiver rodando
+# Previne execuções em duplicidade
 if pgrep -x "i3lock" >/dev/null; then
     exit 0
 fi
 
-# --- Configurações ---
-FADE_SECONDS=20       # Duração PADRÃO do efeito de fade em segundos
-BLUR_LEVEL="0x5"     # Nível de blur para o ImageMagick
-TEMP_BG="/tmp/lockscreen.png"
+# --- CONFIGURAÇÕES ---
+WAIT_SECONDS=${1:-15}    # Tempo de aviso (padrão 15s)
+FADE_SECONDS=15           # Tempo de fade out
+MIN_BRIGHTNESS=20        # Brilho mínimo em % (20% evita que monitores HDMI apaguem)
+BLUR_LEVEL="0x5"
+TEMP_BG="/tmp/i3lock_screen.png"
 
-# --- Variáveis Globais para PIDs em background ---
+# --- VARIÁVEIS DO SISTEMA ---
+BRIGHT_CHANGED=0
 blur_pid=""
-key_monitor_pid=""
+key_pid=""
+initial_mouse=""
 
-# --- Funções ---
+# Descobre saídas conectadas de uma só vez
+mapfile -t OUTPUTS < <(xrandr --query | awk '/ connected / && /[0-9]+x[0-9]+\+[0-9]+\+[0-9]+/{print $1}')
+
+# Captura brilho atual e formata como inteiro de 0 a 100
+raw_bright=$(xrandr --verbose | grep -i brightness | awk '{print $2}' | head -n 1)
+raw_bright=${raw_bright:-1.0}
+START_BRIGHT=$(awk -v b="$raw_bright" 'BEGIN { printf "%d", b * 100 }')
+
+# ARRAY DE RESTAURAÇÃO DO XRANDR (evita reescrever durante o script)
+declare -a RESTORE_ARGS=()
+for out in "${OUTPUTS[@]}"; do
+    RESTORE_ARGS+=(--output "$out" --brightness "$raw_bright")
+done
+
+# --- FUNÇÕES ---
 
 cleanup() {
-    # Restaura o brilho original silenciosamente
-    if [[ -n "$XRANDR_RESTORE_CMD" ]]; then
-        eval "$XRANDR_RESTORE_CMD" &>/dev/null || true
+    # Restaura o brilho apenas se alterado no decorrer do script
+    if [[ "$BRIGHT_CHANGED" -eq 1 ]] && [[ ${#RESTORE_ARGS[@]} -gt 0 ]]; then
+        xrandr "${RESTORE_ARGS[@]}" 2>/dev/null || true
     fi
-    if [[ -n "$blur_pid" ]] && kill -0 "$blur_pid" 2>/dev/null; then
-        kill "$blur_pid"
-    fi
-    if [[ -n "$key_monitor_pid" ]] && kill -0 "$key_monitor_pid" 2>/dev/null; then
-        pkill -P "$key_monitor_pid" 2>/dev/null || true
-        kill "$key_monitor_pid"
+    [[ -n "$blur_pid" ]] && kill -0 "$blur_pid" 2>/dev/null && kill "$blur_pid" 2>/dev/null || true
+    if [[ -n "$key_pid" ]] && kill -0 "$key_pid" 2>/dev/null; then
+        pkill -P "$key_pid" 2>/dev/null || true
+        kill "$key_pid" 2>/dev/null || true
     fi
     rm -f "$TEMP_BG"
-    
-    # REMOVIDO: pkill -USR1 picom. 
-    # Deixe o picom rodando. O i3lock-color lida bem com a tela cheia.
+}
+
+check_interrupt() {
+    local curr_mouse
+    curr_mouse=$(xdotool getmouselocation --shell 2>/dev/null || echo "$initial_mouse")
+    if [[ "$curr_mouse" != "$initial_mouse" ]]; then
+        dunstify -r 500 --urgency=low "Bloqueio cancelado pelo mouse."
+        exit 0
+    fi
+    if [[ -n "$key_pid" ]] && ! kill -0 "$key_pid" 2>/dev/null; then
+        dunstify -r 500 --urgency=low "Bloqueio cancelado pelo teclado."
+        exit 0
+    fi
+}
+
+start_keyboard_monitor() {
+    (stdbuf -oL xinput test-xi2 --root | grep --line-buffered -q "RawKeyPress") &
+    key_pid=$!
 }
 
 execute_lock() {
@@ -64,105 +86,101 @@ execute_lock() {
         --inside-color='00000000'
 }
 
-start_keyboard_listener() {
-    local device_id
-    device_id=$(xinput list |
-        awk -F 'id=' '/liliums Lily58/ && !/Consumer Control|Mouse|System Control/ {print $2}' |
-        awk '{print $1}')
-    if [[ -z "$device_id" ]]; then
-        echo "Aviso: Teclado 'liliums Lily58' não encontrado."
-        return
-    fi
-    (stdbuf -oL xinput test "$device_id" | grep --line-buffered -q "^key press") &
-    key_monitor_pid=$!
-}
-
-# --- Execução ---
+# --- FLUXO DE EXECUÇÃO ---
 
 trap cleanup EXIT SIGINT SIGTERM
 
-# Análise de Parâmetros
-if [[ -n "$1" ]]; then
-    if [[ "$1" =~ ^[0-9]+$ ]]; then
-        FADE_SECONDS="$1"
-    elif [[ "$1" == "now" ]]; then
-        FADE_SECONDS=0
-    else
-        echo "Parâmetro inválido: '$1'. Use 'now' ou um número em segundos."
-        exit 1
-    fi
-fi
-
-# 1. Obter brilho inicial e saídas de vídeo ativas (Mapeamento antecipado)
-start_brightness=$(xrandr --verbose | grep -i brightness | awk '{print $2}' | head -n 1)
-start_brightness=${start_brightness:-1.0}
-
-mapfile -t outputs < <(xrandr --query | awk '/ connected / && /[0-9]+x[0-9]+\+[0-9]+\+[0-9]+/{print $1}')
-
-XRANDR_RESTORE_CMD="xrandr"
-for output in "${outputs[@]}"; do
-    XRANDR_RESTORE_CMD+=" --output $output --brightness $start_brightness"
-done
-
-# Bloqueio Imediato
-if [[ "$FADE_SECONDS" -eq 0 ]]; then
+# Comando de bloqueio imediato "now"
+if [[ "$WAIT_SECONDS" == "now" ]]; then
     scrot -o "$TEMP_BG"
-    convert "$TEMP_BG" -scale 10% -filter Gaussian -blur "$BLUR_LEVEL" -scale 1000% "$TEMP_BG"
+    OMP_NUM_THREADS=1 convert -limit thread 1 "$TEMP_BG" -scale 10% -filter Gaussian -blur "$BLUR_LEVEL" -scale 1000% "$TEMP_BG"
     execute_lock
     exit 0
 fi
 
-# 2. Capturar tela com segurança
+# 1. Captura imagem da tela
 scrot -o "$TEMP_BG"
-sleep 0.1 # Dá um respiro para o X11 terminar de desenhar o scrot
 
-# 3. Iniciar blur em background reduzindo o peso da thread (usando nice)
-nice -n 10 convert "$TEMP_BG" -scale 10% -filter Gaussian -blur "$BLUR_LEVEL" -scale 1000% "$TEMP_BG" &
+# 2. Executa Blur em Background (silencioso e sem disputar CPU)
+(
+    OMP_NUM_THREADS=1 nice -n 19 convert -limit thread 1 "$TEMP_BG" -scale 10% -filter Gaussian -blur "$BLUR_LEVEL" -scale 1000% "$TEMP_BG"
+) &
 blur_pid=$!
 
-# 4. Iniciar listener de teclado
-start_keyboard_listener
+# 3. Monitora entrada de dados
+start_keyboard_monitor
+initial_mouse=$(xdotool getmouselocation --shell)
 
-# 5. Loop principal (Otimizado para X11)
-initial_pos=$(xdotool getmouselocation --shell)
-# Reduzi as interações pela metade (10 FPS) para não engasgar o xrandr
-steps=$((FADE_SECONDS * 10)) 
-brightness_step=$(echo "($start_brightness / $steps)" | bc -l)
-current_brightness=$start_brightness
-
-for ((i = 0; i < steps; i++)); do
-    if [[ "$(xdotool getmouselocation --shell 2>/dev/null || echo "$initial_pos")" != "$initial_pos" ]]; then
-        dunstify -r 100 "Bloqueio cancelado por movimento."
-        exit 0
-    fi
-    
-    if [[ -n "$key_monitor_pid" ]] && ! kill -0 "$key_monitor_pid" 2>/dev/null; then
-        dunstify -r 100 "Bloqueio cancelado por teclado."
-        exit 0
-    fi
-
-    progress=$(((i + 1) * 100 / steps))
-    dunstify --icon=preferences-desktop-screensaver \
-        -h int:value:"$progress" \
-        -h string:hlcolor:#8844ff \
-        -h string:x-dunst-stack-tag:lock-progress \
-        -r 500 "Bloqueando em breve..." "$(date '+%T')" || true
-
-    current_brightness=$(echo "$current_brightness - $brightness_step" | bc -l)
-    
-    xrandr_args=()
-    for output in "${outputs[@]}"; do
-        xrandr_args+=(--output "$output" --brightness "$current_brightness")
+# ==========================================
+# FASE 1: AVISO E BARRA DE PROGRESSO
+# ==========================================
+if (( WAIT_SECONDS > 0 )); then
+    steps=$(( WAIT_SECONDS * 4 )) # 4 verificações por segundo são mais leves que 10
+    for (( i=0; i<=steps; i++ )); do
+        check_interrupt
+        if (( i % 4 == 0 )); then
+            progress=$(( (i * 100) / steps ))
+            dunstify --icon=preferences-desktop-screensaver \
+                --urgency=low \
+                -h int:value:"$progress" \
+                -h string:hlcolor:#8844ff \
+                -r 500 "Bloqueando em breve..." "$(date '+%T')" || true
+        fi
+        sleep 0.25
     done
-    
-    xrandr "${xrandr_args[@]}"
-    
-    # Pausa maior (0.1s) evita sobrecarga no xrandr e engasgos visuais
-    sleep 0.1 
-done
+fi
 
-# Espera o processo de blur terminar
-wait "$blur_pid"
+# ==========================================
+# FASE 2: FADE-OUT SUAVE (SEM "PISCAR")
+# ==========================================
+dunstify -C 500
+pkill -STOP picom 2>/dev/null || true
+BRIGHT_CHANGED=1
+if (( FADE_SECONDS > 0 )); then
+    dunstify -r 500 "Escurecendo a tela..." || true
+    # Dá tempo de o compositor desenhar a notificação sem disputar a GPU
+    sleep 0.10
 
-# Finalmente, executa o bloqueio
+    BRIGHT_CHANGED=1
+    
+    # 5 passos por segundo para fade out são fluidos e não enfileiram comandos do xrandr
+    fade_steps=$(( FADE_SECONDS * 5 ))
+    step_size=$(( (START_BRIGHT - MIN_BRIGHTNESS) / fade_steps ))
+    
+    # Previne divisão por zero se brilho inicial já for baixo
+    (( step_size < 1 )) && step_size=1
+    
+    curr_bright=$START_BRIGHT
+
+    for (( i=0; i<fade_steps; i++ )); do
+        check_interrupt
+        
+        curr_bright=$(( curr_bright - step_size ))
+        (( curr_bright < MIN_BRIGHTNESS )) && curr_bright=$MIN_BRIGHTNESS
+        
+        # Converte inteiro de volta para formato decimal (ex: 85 -> 0.85)
+        decimal_bright=$(awk -v b="$curr_bright" 'BEGIN { printf "%.2f", b / 100 }')
+        
+        args=()
+        for out in "${OUTPUTS[@]}"; do
+            args+=(--output "$out" --brightness "$decimal_bright")
+        done
+        
+        # O xrandr executa aqui sem acúmulo de requisições no X11
+        xrandr "${args[@]}" 2>/dev/null || true
+        
+        sleep 0.20
+    done
+fi
+pkill -CONT picom 2>/dev/null || true
+# Restaura o brilho digital original suavemente ANTES do lockscreen
+if [[ "$BRIGHT_CHANGED" -eq 1 ]]; then
+    xrandr "${RESTORE_ARGS[@]}" 2>/dev/null || true
+    BRIGHT_CHANGED=0
+fi
+
+# Aguarda conclusão do blur em segurança se ele ainda estiver processando
+wait "$blur_pid" 2>/dev/null || true
+
+# Aciona bloqueio visual
 execute_lock

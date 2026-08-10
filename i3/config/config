@@ -287,8 +287,8 @@ bar {
 }
 
 # Dmenu options
-bindsym $mod+d exec rofi -theme Arc-Dark.rasi -modi combi -show combi -lines 5 -eh 2 -width 800 -padding 800 --window-opacity "85" -bw 0 -bc "$bg-color" -bg "$bg-color" -fg "$text-color" -hlbg "bg-color" -hlfg "#9575cd" -font "monospace 12"
-bindsym $mod+shift+d exec rofi -theme Arc-Dark.rasi -show drun -lines 10 -eh 2 -width 1000 -padding 800 --window-opacity "85" -bw 0 -bc "$bg-color" -bg "$bg-color" -fg "$text-color" -hlbg "bg-color" -hlfg "#9575cd" -font "monospace 12"
+bindsym $mod+d exec rofi -theme Arc-Dark.rasi -modi combi -show combi -lines 5 -eh 2 -width 800 -padding 800 --window-opacity "85" -bw 0 -bc "$bg-color" -bg "$bg-color" -fg "$text-color" -hlbg "$bg-color" -hlfg "#9575cd" -font "monospace 12"
+bindsym $mod+shift+d exec rofi -theme Arc-Dark.rasi -show drun -lines 10 -eh 2 -width 1000 -padding 800 --window-opacity "85" -bw 0 -bc "$bg-color" -bg "$bg-color" -fg "$text-color" -hlbg "$bg-color" -hlfg "#9575cd" -font "monospace 12"
 
 # Exit i3 (logs you out of your X session)
 bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
@@ -316,7 +316,8 @@ bindsym $mod+Shift+q kill
 #bindsym $mod+o exec /usr/bin/xset dpms force standby -r 10 
 bindsym $mod+Shift+Return exec /usr/bin/alacritty
 bindsym $mod+Return exec /usr/bin/kitty
-bindsym $mod+q exec /usr/bin/xfce4-appfinder
+bindsym $mod+q exec --no-startup-id /home/salaam/scripts/i3toggle_audio.sh 
+#bindsym $mod+q exec /usr/bin/xfce4-appfinder
 bindsym $mod+g exec /usr/bin/brave-browser --force-dark "https://meutimao.com.br"
 bindsym $mod+shift+g exec /usr/bin/firefox
 bindsym $mod+e exec /usr/bin/nemo
