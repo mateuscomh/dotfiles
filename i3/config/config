@@ -23,7 +23,7 @@ exec --no-startup-id $monitorLayout
 
 # Set wallpaper
 #exec --no-startup-id /usr/bin/nitrogen --restore
-exec --no-startup-id feh --bg-fill $setScreenWallpaper 
+exec_always --no-startup-id feh --bg-fill $setScreenWallpaper 
 
 # Desktop effects transparency
 exec --no-startup-id compton -f --backend glx --vsync opengl
