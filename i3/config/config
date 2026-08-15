@@ -29,7 +29,8 @@ exec --no-startup-id $monitorLayout
 exec --no-startup-id feh --bg-fill $setScreenWallpaper 
 
 # Desktop effects transparency
-exec_always --no-startup-id pkill compton; sleep 0.5; compton -f --backend glx --vsync opengl
+#exec_always --no-startup-id pkill compton; sleep 0.5; compton -f --backend glx --vsync opengl
+exec_always --no-startup-id killall -q compton picom; picom --backend glx --vsync --glx-no-stencil -b
 #exec --no-startup-id compton -f --backend glx --vsync opengl
 
 # Screen brightness adjust
