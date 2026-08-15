@@ -92,17 +92,19 @@ trap cleanup EXIT SIGINT SIGTERM
 
 # Comando de bloqueio imediato "now"
 if [[ "$WAIT_SECONDS" == "now" ]]; then
-    scrot -o "$TEMP_BG"
-    OMP_NUM_THREADS=1 convert -limit thread 1 "$TEMP_BG" -scale 10% -filter Gaussian -blur "$BLUR_LEVEL" -scale 1000% "$TEMP_BG"
+    maim "$TEMP_BG"
+    OMP_NUM_THREADS=1 nice -n 19 convert -limit thread 1 "$TEMP_BG" -scale 10% -filter Gaussian -blur "$BLUR_LEVEL" -scale 1000% "$TEMP_BG"
     execute_lock
     exit 0
 fi
 
 # 1. Captura imagem da tela
-scrot -o "$TEMP_BG"
+maim "$TEMP_BG"
 
 # 2. Executa Blur em Background (silencioso e sem disputar CPU)
 (
+    # Aguarda o maim liberar o disco e o sistema respirar antes de processar a imagem
+    sleep 0.5
     OMP_NUM_THREADS=1 nice -n 19 convert -limit thread 1 "$TEMP_BG" -scale 10% -filter Gaussian -blur "$BLUR_LEVEL" -scale 1000% "$TEMP_BG"
 ) &
 blur_pid=$!
@@ -131,17 +133,16 @@ if (( WAIT_SECONDS > 0 )); then
 fi
 
 # ==========================================
-# FASE 2: FADE-OUT SUAVE (SEM "PISCAR")
+# FASE 2: FADE-OUT SUAVE
 # ==========================================
-dunstify -C 500
-pkill -STOP picom 2>/dev/null || true
-BRIGHT_CHANGED=1
 if (( FADE_SECONDS > 0 )); then
-    dunstify -r 500 "Escurecendo a tela..." || true
-    # Dá tempo de o compositor desenhar a notificação sem disputar a GPU
-    sleep 0.10
-
     BRIGHT_CHANGED=1
+    
+    # Atualiza a notificação de forma limpa (reaproveitando o ID 500)
+    dunstify -r 500 --urgency=low "Escurecendo a tela..." "$(date '+%T')" || true
+    
+    # Pausa vital: dá tempo de o Picom renderizar a notificação antes do xrandr mexer na GPU
+    sleep 0.50
     
     # 5 passos por segundo para fade out são fluidos e não enfileiram comandos do xrandr
     fade_steps=$(( FADE_SECONDS * 5 ))
@@ -172,7 +173,7 @@ if (( FADE_SECONDS > 0 )); then
         sleep 0.20
     done
 fi
-pkill -CONT picom 2>/dev/null || true
+
 # Restaura o brilho digital original suavemente ANTES do lockscreen
 if [[ "$BRIGHT_CHANGED" -eq 1 ]]; then
     xrandr "${RESTORE_ARGS[@]}" 2>/dev/null || true
