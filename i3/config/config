@@ -334,7 +334,7 @@ bindsym $mod+shift+p exec ${HOME}/.config/ocr/flameshot_ocr.sh
 bindsym $mod+m move position mouse
 
 # Logitech Solar
-bindsym $mod+shift+z exec /usr/bin/solaar config "MX Master 2S" change-host 3
+bindsym $mod+shift+z exec /usr/bin/solaar config "MX Master 2S" change-host 1
 
 # Sreen brightness controls
 bindsym XF86MonBrightnessUp exec xbacklight -inc 20 # increase screen brightness
