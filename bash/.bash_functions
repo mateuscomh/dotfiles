@@ -188,7 +188,7 @@ deduplicates() {
 }
 
 transfer() {
-    local url="${TRANSFER_URL:-http://blade.local:9997}"
+    local url="${TRANSFER_URL:-http://172.16.10.199:9997}"
     local file
     local file_name
 
@@ -430,12 +430,10 @@ tempsnips() {
     ssh -p "${SNIPS_PORT}" "f:${id}@${SNIPS_HOST}" sign -ttl "$ttl"
 }
 
-
-SNIPS_HOST="172.16.10.199"
-SNIPS_PORT="2222"
-
 _snips_clip() {
-  if command -v xclip >/dev/null 2>&1; then
+  if command -v wl-copy >/dev/null 2>&1; then
+    wl-copy
+  elif command -v xclip >/dev/null 2>&1; then
     xclip -selection clipboard
   elif command -v xsel >/dev/null 2>&1; then
     xsel --clipboard --input
@@ -445,39 +443,61 @@ _snips_clip() {
     clip.exe
   else
     cat >/dev/null
-    echo "aviso: nenhum utilitario de clipboard encontrado (xclip/xsel/pbcopy/clip.exe)" >&2
+    echo "aviso: nenhum utilitario de clipboard encontrado (wl-copy/xclip/xsel/pbcopy/clip.exe)" >&2
   fi
 }
 
 _snips_url_to_clip() {
-  local clean url
-  # remove códigos ANSI (cores/sublinhado/etc)
-  clean="$(sed -E 's/\x1b\[[0-9;]*[a-zA-Z]//g')"
-  # pega a última URL http/https encontrada na saída
-  url="$(printf '%s\n' "$clean" | grep -oE 'https?://[^[:space:]]+' | tail -n1)"
+  # Extrai estritamente caracteres válidos para URLs, ignorando códigos invisíveis (OSC 8 / ANSI)
+  local url
+  url="$(cat | grep -oE '(https?|ssh)://[a-zA-Z0-9./?=_%:\-~]+' | tail -n1)"
+  
   if [ -n "$url" ]; then
     printf '%s' "$url" | _snips_clip
   fi
 }
 
 snips() {
+  local out
+  
   if [ ! -t 0 ]; then
-    cat | ssh "${SNIPS_HOST}" -p "${SNIPS_PORT}" | tee >(_snips_url_to_clip)
+    # Pipeline mode (ex: echo "oi" | snips)
+    out=$(cat | ssh "${SNIPS_HOST}" -p "${SNIPS_PORT}")
+    printf '%s\n' "$out"
+    printf '%s\n' "$out" | _snips_url_to_clip
+    
   elif [ -n "$1" ]; then
     if [ -f "$1" ]; then
-      ssh "${SNIPS_HOST}" -p "${SNIPS_PORT}" < "$1" | tee >(_snips_url_to_clip)
+      # File mode (ex: snips arquivo.txt)
+      out=$(ssh "${SNIPS_HOST}" -p "${SNIPS_PORT}" < "$1")
+      printf '%s\n' "$out"
+      printf '%s\n' "$out" | _snips_url_to_clip
     else
-      printf '%s\n' "$*" | ssh "${SNIPS_HOST}" -p "${SNIPS_PORT}" | tee >(_snips_url_to_clip)
+      # String mode (ex: snips "texto direto")
+      out=$(printf '%s\n' "$*" | ssh "${SNIPS_HOST}" -p "${SNIPS_PORT}")
+      printf '%s\n' "$out"
+      printf '%s\n' "$out" | _snips_url_to_clip
     fi
+    
   else
+    # Interactive mode
     ssh "${SNIPS_HOST}" -p "${SNIPS_PORT}"
   fi
 }
 
-## Base64 encode + copia pro clipboard
-#b64e(){ 
-#	printf '%s' "${*:-$(cat)}" | base64 -w0 | tee >(xclip -selection clipboard); echo; 
-#}
-#b64d(){
-#	printf '%s' "${*:-$(cat)}" | base64 -d | tee >(xclip -selection clipboard); echo; 
-#}
+tclip() {
+    local input formatted
+
+    if [ -t 0 ]; then
+        input="$*"
+    else
+        input=$(cat)
+    fi
+
+    formatted=$(printf '%s' "$input" |
+        perl -CSD -pe 's/^\s+|\s+$//g')
+
+    printf '%s' "$formatted" | xclip -selection clipboard
+
+    printf '%s\n' "$formatted"
+}

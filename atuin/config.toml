@@ -306,7 +306,7 @@ enabled = false
 
 [ai]
 enabled = true
-model = "max"
+model = "balanced"
 [ai.capabilities]
 enable_history_search = false
 enable_file_tools = true
@@ -369,3 +369,11 @@ enable_command_execution = true
  syntax_highlight = true
 columns = ["duration", { type = "time", width = 6 } , "command", "host"]
 
+[threads]
+capture = true
+
+[logs]
+enabled = true
+dir = "~/.atuin/logs"
+level = "info"
+retention = "4d"

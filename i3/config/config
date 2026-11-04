@@ -30,7 +30,8 @@ exec --no-startup-id feh --bg-fill $setScreenWallpaper
 
 # Desktop effects transparency
 #exec_always --no-startup-id pkill compton; sleep 0.5; compton -f --backend glx --vsync opengl
-exec_always --no-startup-id killall -q compton picom; picom --backend glx --vsync --glx-no-stencil -b
+#exec_always --no-startup-id killall -q compton picom; picom --backend glx --vsync --glx-no-stencil -b
+exec --no-startup-id picom --config ~/.config/picom/picom.conf
 #exec --no-startup-id compton -f --backend glx --vsync opengl
 
 # Screen brightness adjust
@@ -59,14 +60,14 @@ bindsym $mod+n move workspace to output next
 exec_always --no-startup-id xset r rate 250 20
 
 # Define a variável para o script de bloqueio
-set $i3lockscreen "$HOME/scripts/i3notify_lock.sh"
+set $i3lockscreen "$HOME/scripts/i3notify_lock_imp.sh"
 
 # Ativa o DPMS e define o tempo de suspensão para 15 minutos (900 segundos)
 
 #Teste para resolver blink screen
 #exec --no-startup-id xset -dpms
 #exec --no-startup-id xset s off
-
+#exec --no-startup-id xset s 300 15
 
 #exec --no-startup-id xset dpms 0 0 9000
 
@@ -83,7 +84,8 @@ exec --no-startup-id xautolock \
     -killer "xset dpms force off"
 
 # Set lockscreen
-bindsym $mod+l exec $i3lockscreen now 
+bindsym $mod+l exec --no-startup-id bash -c '"$HOME/scripts/i3notify_lock_imp.sh" now'
+#bindsym $mod+l exec $i3lockscreen now 
 
 # Set screen wallpaper
 #set $setScreenWallpaper ~/dotfiles/i3/wallpaper/horgalaxyL.jpg /home/salaam/dotfiles/i3/wallpaper/horgalaxyR.jpg 
@@ -296,6 +298,9 @@ bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcu
 
 # restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
 bindsym $mod+Shift+r restart
+
+#Preload dunst
+exec --no-startup-id dunst
 
 # Reload Display screen
 exec --no-startup-id xrandr --dpi 96

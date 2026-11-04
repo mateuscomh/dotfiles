@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+#Create a symbolic link in ~/.local/config/bin/spotify-notify
+
+LOG="$HOME/.cache/spotify-notify.log"
+COVER="/tmp/spotify-cover.jpg"
+
+echo "$(date) - iniciado" >> "$LOG"
+
+while true; do
+    if ! playerctl -p spotify status &>/dev/null; then
+        sleep 2
+        continue
+    fi
+
+    echo "$(date) - Spotify encontrado" >> "$LOG"
+
+    playerctl -p spotify metadata --follow \
+        --format '{{ artist }}|{{ title }}|{{ album }}|{{ mpris:artUrl }}' |
+    while IFS='|' read -r artist title album art_url; do
+
+        echo "$(date) - faixa: $artist - $title" >> "$LOG"
+
+        curl -sL "$art_url" -o "$COVER"
+
+        notify-send \
+            -a "Spotify" \
+            -i "$COVER" \
+            -t 5000 \
+            "♫ $title" \
+            "<b>$artist</b>\n<span size='small'>$album</span>"
+
+    done
+
+    sleep 2
+done
+

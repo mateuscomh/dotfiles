@@ -17,7 +17,7 @@ flock -n 9 || exit 0
 # ==========================================
 if [ "$CURRENT_SINK" = "$SINK_MONITOR" ]; then
 
-    STEP=10
+    STEP=15
     MIN=0
     MAX=100
     VCP=62
